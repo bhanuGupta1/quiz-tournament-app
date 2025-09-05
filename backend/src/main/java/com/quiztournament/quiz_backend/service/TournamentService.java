@@ -62,6 +62,14 @@ public class TournamentService {
         // Save tournament
         Tournament savedTournament = tournamentRepository.save(tournament);
 
+        // Send email notifications to all players
+        try {
+            emailService.sendNewTournamentNotification(savedTournament, currentUser);
+        } catch (Exception e) {
+            System.err.println("Failed to send tournament notification emails: " + e.getMessage());
+            // Don't fail tournament creation if email fails
+        }
+
         return new TournamentResponse(savedTournament);
     }
 
