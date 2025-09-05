@@ -55,11 +55,27 @@ public class SecurityConfig {
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**")).permitAll()
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/actuator/**")).permitAll()
 
-                        // Admin-only endpoints
+                        // Admin-only endpoints (order matters - more specific first)
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/api/admin/**")).hasRole("ADMIN")
                         .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.GET, "/api/tournaments")).hasRole("ADMIN")
+                        .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/api/tournaments")).hasRole("ADMIN")
+                        .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.PUT, "/api/tournaments/*")).hasRole("ADMIN")
+                        .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.DELETE, "/api/tournaments/*")).hasRole("ADMIN")
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/api/tournaments/categories")).hasRole("ADMIN")
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/api/tournaments/test-api")).hasRole("ADMIN")
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/api/tournaments/cache-stats")).hasRole("ADMIN")
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/api/tournaments/statistics")).hasRole("ADMIN")
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/api/tournaments/my-tournaments")).hasRole("ADMIN")
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/api/tournaments/*/cache")).hasRole("ADMIN")
 
-                        // Protected endpoints - authentication required
+                        // Player-only endpoints
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/api/tournaments/*/questions")).hasRole("PLAYER")
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/api/tournaments/*/questions/*")).hasRole("PLAYER")
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/api/tournaments/*/questions/*/answer")).hasRole("PLAYER")
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/api/tournaments/*/session")).hasRole("PLAYER")
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/api/tournaments/*/complete")).hasRole("PLAYER")
+
+                        // Protected endpoints - authentication required (general patterns last)
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/api/tournaments/**")).authenticated()
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/api/users/**")).authenticated()
 
