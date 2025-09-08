@@ -1,6 +1,7 @@
 package com.quiztournament.quiz_backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.quiztournament.quiz_backend.controller.TournamentController;
 import com.quiztournament.quiz_backend.dto.TournamentCreateRequest;
 import com.quiztournament.quiz_backend.dto.TournamentResponse;
 import com.quiztournament.quiz_backend.dto.TournamentUpdateRequest;

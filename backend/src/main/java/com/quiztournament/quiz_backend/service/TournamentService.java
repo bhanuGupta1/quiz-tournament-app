@@ -35,6 +35,9 @@ public class TournamentService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private EmailService emailService;
+
     /**
      * Create a new tournament
      * @param request Tournament creation data

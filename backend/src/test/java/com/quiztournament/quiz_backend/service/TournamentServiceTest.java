@@ -10,6 +10,7 @@ import com.quiztournament.quiz_backend.entity.UserRole;
 import com.quiztournament.quiz_backend.repository.TournamentRepository;
 import com.quiztournament.quiz_backend.repository.UserRepository;
 import com.quiztournament.quiz_backend.service.CustomUserDetailsService.CustomUserPrincipal;
+import com.quiztournament.quiz_backend.service.EmailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

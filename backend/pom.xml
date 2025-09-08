@@ -19,7 +19,6 @@
 
 	<properties>
 		<java.version>17</java.version>
-		<!-- Lock tool versions so builds are reproducible -->
 		<jacoco.version>0.8.10</jacoco.version>
 		<surefire.version>3.1.2</surefire.version>
 		<failsafe.version>3.1.2</failsafe.version>
@@ -101,7 +100,7 @@
 			<optional>true</optional>
 		</dependency>
 
-		<!-- Testing (unit & mvc) -->
+		<!-- Testing -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -112,15 +111,27 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-
-		<!-- Extra testing libs -->
 		<dependency>
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
 			<scope>test</scope>
 		</dependency>
 
-		<!-- Testcontainers (for DB/integration tests) -->
+		<!-- Mockito (inline + JUnit 5 extension) -->
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-inline</artifactId>
+			<version>5.2.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-junit-jupiter</artifactId>
+			<version>5.2.0</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Testcontainers (versions via BOM below) -->
 		<dependency>
 			<groupId>org.testcontainers</groupId>
 			<artifactId>junit-jupiter</artifactId>
@@ -132,7 +143,7 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- WireMock (for external API stubbing) -->
+		<!-- WireMock 3.x -->
 		<dependency>
 			<groupId>org.wiremock</groupId>
 			<artifactId>wiremock-standalone</artifactId>
@@ -140,7 +151,7 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- JSONPath (optional; spring-boot-starter-test already brings it, but keeping is fine) -->
+		<!-- Optional: JSONPath -->
 		<dependency>
 			<groupId>com.jayway.jsonpath</groupId>
 			<artifactId>json-path</artifactId>
@@ -162,35 +173,42 @@
 
 	<build>
 		<plugins>
-			<!-- Spring Boot -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 
-			<!-- JaCoCo (coverage) -->
+			<!-- JaCoCo: set agent line without clobbering Surefire/Failsafe argLine -->
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>${jacoco.version}</version>
 				<executions>
+					<!-- Unit tests -->
 					<execution>
-						<goals>
-							<goal>prepare-agent</goal>
-						</goals>
+						<id>prepare-agent</id>
+						<goals><goal>prepare-agent</goal></goals>
+						<configuration>
+							<propertyName>surefireArgLine</propertyName>
+						</configuration>
+					</execution>
+					<!-- Integration tests -->
+					<execution>
+						<id>prepare-agent-integration</id>
+						<phase>pre-integration-test</phase>
+						<goals><goal>prepare-agent</goal></goals>
+						<configuration>
+							<propertyName>failsafeArgLine</propertyName>
+						</configuration>
 					</execution>
 					<execution>
 						<id>report</id>
 						<phase>test</phase>
-						<goals>
-							<goal>report</goal>
-						</goals>
+						<goals><goal>report</goal></goals>
 					</execution>
 					<execution>
 						<id>check</id>
-						<goals>
-							<goal>check</goal>
-						</goals>
+						<goals><goal>check</goal></goals>
 						<configuration>
 							<rules>
 								<rule>
@@ -215,15 +233,14 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>${surefire.version}</version>
 				<configuration>
-					<!-- Enable test profile automatically -->
 					<systemPropertyVariables>
 						<spring.profiles.active>test</spring.profiles.active>
 					</systemPropertyVariables>
-					<!-- Default includes would already run **/*Test(s).java; keep explicit for clarity -->
 					<includes>
 						<include>**/*Test.java</include>
 						<include>**/*Tests.java</include>
 					</includes>
+					<argLine>${surefireArgLine} --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED</argLine>
 				</configuration>
 			</plugin>
 
@@ -240,6 +257,7 @@
 						<include>**/*IT.java</include>
 						<include>**/*IntegrationTest.java</include>
 					</includes>
+					<argLine>${failsafeArgLine} --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED</argLine>
 				</configuration>
 				<executions>
 					<execution>

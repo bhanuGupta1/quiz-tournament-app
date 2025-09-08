@@ -3,6 +3,7 @@ package com.quiztournament.quiz_backend.service;
 import com.quiztournament.quiz_backend.entity.User;
 import com.quiztournament.quiz_backend.entity.UserRole;
 import com.quiztournament.quiz_backend.repository.UserRepository;
+import com.quiztournament.quiz_backend.service.CustomUserDetailsService;
 import com.quiztournament.quiz_backend.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
