@@ -160,7 +160,7 @@ class TournamentControllerTest {
         mockMvc.perform(get("/api/tournaments"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpected(jsonPath("$.tournaments").isArray())
+                .andExpect(jsonPath("$.tournaments").isArray())
                 .andExpect(jsonPath("$.tournaments[0].id").value(1L))
                 .andExpect(jsonPath("$.tournaments[0].name").value("Test Tournament"))
                 .andExpect(jsonPath("$.count").value(1));
@@ -333,7 +333,7 @@ class TournamentControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/tournaments/category/science"))
-                .andExpected(status().isOk())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.tournaments").isArray())
                 .andExpect(jsonPath("$.category").value("science"))

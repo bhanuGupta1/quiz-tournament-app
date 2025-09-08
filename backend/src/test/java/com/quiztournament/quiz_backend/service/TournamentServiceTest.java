@@ -17,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,6 +29,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -110,6 +112,7 @@ class TournamentServiceTest {
         when(userPrincipal.getId()).thenReturn(adminUser.getId());
         when(userRepository.findById(adminUser.getId())).thenReturn(Optional.of(adminUser));
         when(tournamentRepository.save(any(Tournament.class))).thenReturn(tournament);
+        doNothing().when(emailService).sendNewTournamentNotification(any(Tournament.class), eq(adminUser));
 
         // Mock security context
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
@@ -157,7 +160,7 @@ class TournamentServiceTest {
     void getAllTournaments_Success() {
         // Given
         List<Tournament> tournaments = List.of(tournament);
-        when(tournamentRepository.findAll(any())).thenReturn(tournaments);
+        when(tournamentRepository.findAll(any(Sort.class))).thenReturn(tournaments);
         when(tournamentRepository.countParticipants(anyLong())).thenReturn(5L);
         when(tournamentRepository.getAverageScore(anyLong())).thenReturn(75.5);
         when(tournamentRepository.countLikes(anyLong())).thenReturn(3L);
@@ -210,10 +213,20 @@ class TournamentServiceTest {
         updateRequest.setStartDate(LocalDate.now().plusDays(3));
         updateRequest.setEndDate(LocalDate.now().plusDays(9));
 
+        Tournament updatedTournament = new Tournament();
+        updatedTournament.setId(1L);
+        updatedTournament.setName("Updated Tournament Name");
+        updatedTournament.setCategory(tournament.getCategory());
+        updatedTournament.setDifficulty(tournament.getDifficulty());
+        updatedTournament.setStartDate(updateRequest.getStartDate());
+        updatedTournament.setEndDate(updateRequest.getEndDate());
+        updatedTournament.setMinPassingScore(tournament.getMinPassingScore());
+        updatedTournament.setCreatedBy(adminUser);
+
         when(tournamentRepository.findById(1L)).thenReturn(Optional.of(tournament));
         when(userPrincipal.getId()).thenReturn(adminUser.getId());
         when(userRepository.findById(adminUser.getId())).thenReturn(Optional.of(adminUser));
-        when(tournamentRepository.save(any(Tournament.class))).thenReturn(tournament);
+        when(tournamentRepository.save(any(Tournament.class))).thenReturn(updatedTournament);
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockedSecurityContext.when(SecurityContextHolder::getContext).thenReturn(securityContext);
@@ -236,6 +249,7 @@ class TournamentServiceTest {
         when(userPrincipal.getId()).thenReturn(adminUser.getId());
         when(userRepository.findById(adminUser.getId())).thenReturn(Optional.of(adminUser));
         when(tournamentRepository.countParticipants(1L)).thenReturn(0L);
+        doNothing().when(tournamentRepository).delete(tournament);
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockedSecurityContext.when(SecurityContextHolder::getContext).thenReturn(securityContext);

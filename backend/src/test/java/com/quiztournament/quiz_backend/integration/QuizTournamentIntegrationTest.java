@@ -26,6 +26,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 
 /**
  * Integration tests for the complete Quiz Tournament application
@@ -222,7 +223,7 @@ class QuizTournamentIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(resetRequest)))
                 .andExpect(status().isOk())
-                .andExpected(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").exists());
 
         // Note: In a real integration test, you would need to:
