@@ -38,7 +38,10 @@ public interface TournamentRepository extends JpaRepository<Tournament, Long> {
     List<Tournament> findPastTournaments(@Param("currentDate") LocalDate currentDate);
 
     // Find tournaments that a specific user has participated in
-    @Query("SELECT DISTINCT uts.tournament FROM UserTournamentScore uts WHERE uts.user.id = :userId ORDER BY uts.completedAt DESC")
+    // Fixed: Use subquery to avoid DISTINCT + ORDER BY issue
+    @Query("SELECT t FROM Tournament t WHERE t.id IN " +
+            "(SELECT uts.tournament.id FROM UserTournamentScore uts WHERE uts.user.id = :userId) " +
+            "ORDER BY t.createdAt DESC")
     List<Tournament> findTournamentsParticipatedByUser(@Param("userId") Long userId);
 
     // Find tournaments that a user has NOT participated in yet

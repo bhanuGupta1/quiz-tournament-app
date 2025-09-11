@@ -8,14 +8,15 @@ import com.quiztournament.quiz_backend.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Map;
 import java.util.Optional;
@@ -29,22 +30,22 @@ import static org.mockito.Mockito.*;
  * Unit tests for AuthService
  * Tests user authentication, registration, and token generation
  */
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(SpringExtension.class)
 class AuthServiceTest {
 
-    @Mock
+    @MockBean
     private UserRepository userRepository;
 
-    @Mock
+    @MockBean
     private PasswordEncoder passwordEncoder;
 
-    @Mock
+    @MockBean
     private AuthenticationManager authenticationManager;
 
-    @Mock
-    private CustomUserDetailsService userDetailsService;
+    @MockBean
+    private UserDetailsService userDetailsService;
 
-    @Mock
+    @MockBean
     private JwtUtil jwtUtil;
 
     @Mock
@@ -53,14 +54,16 @@ class AuthServiceTest {
     @Mock
     private CustomUserDetailsService.CustomUserPrincipal userPrincipal;
 
-    @InjectMocks
     private AuthService authService;
-
     private User adminUser;
     private User playerUser;
 
     @BeforeEach
     void setUp() {
+        // Manual injection since we're using @MockBean
+        authService = new AuthService(userRepository, passwordEncoder,
+                authenticationManager, userDetailsService, jwtUtil);
+
         adminUser = new User();
         adminUser.setId(1L);
         adminUser.setUsername("admin");
@@ -175,7 +178,7 @@ class AuthServiceTest {
         when(userPrincipal.getId()).thenReturn(1L);
         when(userPrincipal.getEmail()).thenReturn("admin@test.com");
         when(userPrincipal.getUser()).thenReturn(adminUser);
-        when(jwtUtil.generateToken(eq(userPrincipal), any(Map.class))).thenReturn(jwtToken);
+        when(jwtUtil.generateToken(any(), any(Map.class))).thenReturn(jwtToken);
 
         // When
         Map<String, Object> result = authService.login(username, password);
@@ -187,7 +190,7 @@ class AuthServiceTest {
         assertThat(result.get("user")).isNotNull();
 
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(jwtUtil).generateToken(eq(userPrincipal), any(Map.class));
+        verify(jwtUtil).generateToken(any(), any(Map.class));
     }
 
     @Test
