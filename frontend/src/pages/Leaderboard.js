@@ -29,6 +29,9 @@ const Leaderboard = () => {
         api.get(`/api/participation/tournaments/${id}/leaderboard?limit=${limit}`)
       ]);
       
+      console.log('Leaderboard API response:', leaderboardResponse.data);
+      console.log('Leaderboard entries:', leaderboardResponse.data.leaderboard);
+      
       setTournament(tournamentResponse.data.tournament);
       setLeaderboard(leaderboardResponse.data.leaderboard || []);
     } catch (error) {
@@ -140,7 +143,7 @@ const Leaderboard = () => {
                     key={result.id || index}
                     style={{ 
                       borderBottom: '1px solid #dee2e6',
-                      backgroundColor: result.user?.username === user.username ? '#f8f9ff' : 'transparent'
+                      backgroundColor: result.userId === user.id ? '#f8f9ff' : 'transparent'
                     }}
                   >
                     <td style={{ padding: '15px' }}>
@@ -154,8 +157,8 @@ const Leaderboard = () => {
                     <td style={{ padding: '15px' }}>
                       <div>
                         <div style={{ fontWeight: 'bold' }}>
-                          {result.user?.username || 'Anonymous'}
-                          {result.user?.username === user.username && (
+                          {result.playerName || 'Anonymous'}
+                          {result.userId === user.id && (
                             <span style={{ 
                               marginLeft: '8px', 
                               padding: '2px 6px', 
@@ -169,7 +172,7 @@ const Leaderboard = () => {
                           )}
                         </div>
                         <div style={{ fontSize: '14px', color: '#666' }}>
-                          {result.user?.city && `${result.user.city}`}
+                          User ID: {result.userId}
                         </div>
                       </div>
                     </td>

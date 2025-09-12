@@ -27,10 +27,11 @@ public interface UserTournamentScoreRepository extends JpaRepository<UserTournam
     List<UserTournamentScore> findByUserOrderByCompletedAtDesc(User user);
 
     // Find all scores for a specific tournament (tournament leaderboard)
-    List<UserTournamentScore> findByTournamentOrderByScoreDesc(Tournament tournament);
+    @Query("SELECT uts FROM UserTournamentScore uts JOIN FETCH uts.user WHERE uts.tournament = :tournament ORDER BY uts.score DESC")
+    List<UserTournamentScore> findByTournamentOrderByScoreDesc(@Param("tournament") Tournament tournament);
 
     // Find top scores for a tournament (leaderboard with limit)
-    @Query("SELECT uts FROM UserTournamentScore uts WHERE uts.tournament = :tournament ORDER BY uts.score DESC LIMIT :limit")
+    @Query("SELECT uts FROM UserTournamentScore uts JOIN FETCH uts.user WHERE uts.tournament = :tournament ORDER BY uts.score DESC LIMIT :limit")
     List<UserTournamentScore> findTopScoresByTournament(@Param("tournament") Tournament tournament, @Param("limit") int limit);
 
     // Find all users who passed a specific tournament

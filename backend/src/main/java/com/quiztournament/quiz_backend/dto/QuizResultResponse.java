@@ -52,6 +52,12 @@ public class QuizResultResponse {
         response.setTournamentId(userScore.getTournament().getId());
         response.setTournamentName(userScore.getTournament().getName());
         response.setUserId(userScore.getUser().getId());
+        
+        // Debug logging
+        System.out.println("Creating QuizResultResponse for user: " + 
+            userScore.getUser().getFirstName() + " " + userScore.getUser().getLastName() + 
+            " (ID: " + userScore.getUser().getId() + ")");
+        
         response.setPlayerName(userScore.getUser().getFirstName() + " " + userScore.getUser().getLastName());
         response.setScore(userScore.getScore());
         response.setTotalQuestions(10);
