@@ -125,17 +125,24 @@ public class AuthService {
      * Create default admin user (admin/op@1234) if it doesn't exist
      */
     public void createDefaultAdmin() {
-        if (!userRepository.existsByUsername("admin")) {
-            User admin = new User();
-            admin.setUsername("admin");
-            admin.setFirstName("System");
-            admin.setLastName("Administrator");
-            admin.setEmail("admin@quiztournament.com");
-            admin.setPassword("op@1234");
-            admin.setRole(UserRole.ADMIN);
+        try {
+            if (!userRepository.existsByUsername("admin")) {
+                User admin = new User();
+                admin.setUsername("admin");
+                admin.setFirstName("System");
+                admin.setLastName("Administrator");
+                admin.setEmail("admin@quiztournament.com");
+                admin.setPassword("op@1234");
+                admin.setRole(UserRole.ADMIN);
 
-            registerAdmin(admin);
-            System.out.println("Default admin user created - Username: admin, Password: op@1234");
+                registerAdmin(admin);
+                System.out.println("Default admin user created - Username: admin, Password: op@1234");
+            } else {
+                System.out.println("Default admin user already exists");
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to create default admin user: " + e.getMessage());
+            throw e;
         }
     }
 

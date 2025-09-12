@@ -17,13 +17,22 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        // Create default admin user
-        authService.createDefaultAdmin();
+        try {
+            // Add a small delay to ensure database is fully initialized
+            Thread.sleep(1000);
+            
+            // Create default admin user
+            authService.createDefaultAdmin();
 
-        System.out.println("=== Quiz Tournament Application Started ===");
-        System.out.println("Default Admin Credentials:");
-        System.out.println("Username: admin");
-        System.out.println("Password: op@1234");
-        System.out.println("==========================================");
+            System.out.println("=== Quiz Tournament Application Started ===");
+            System.out.println("Default Admin Credentials:");
+            System.out.println("Username: admin");
+            System.out.println("Password: op@1234");
+            System.out.println("==========================================");
+        } catch (Exception e) {
+            System.err.println("Error during data initialization: " + e.getMessage());
+            // Don't fail the application startup, just log the error
+            e.printStackTrace();
+        }
     }
 }

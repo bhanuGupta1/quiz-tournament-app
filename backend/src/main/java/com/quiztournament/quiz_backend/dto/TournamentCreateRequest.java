@@ -20,11 +20,9 @@ public class TournamentCreateRequest {
     private String difficulty;
 
     @NotNull(message = "Start date is required")
-    @Future(message = "Start date must be in the future")
     private LocalDate startDate;
 
     @NotNull(message = "End date is required")
-    @Future(message = "End date must be in the future")
     private LocalDate endDate;
 
     @NotNull(message = "Minimum passing score is required")

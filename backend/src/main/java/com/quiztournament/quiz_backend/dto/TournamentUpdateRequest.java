@@ -12,10 +12,8 @@ public class TournamentUpdateRequest {
     @Size(max = 100, message = "Tournament name cannot exceed 100 characters")
     private String name;
 
-    @Future(message = "Start date must be in the future")
     private LocalDate startDate;
 
-    @Future(message = "End date must be in the future")
     private LocalDate endDate;
 
     // Constructors
