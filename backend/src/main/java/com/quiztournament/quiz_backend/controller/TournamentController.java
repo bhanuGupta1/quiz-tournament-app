@@ -338,4 +338,46 @@ public class TournamentController {
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }
+
+    /**
+     * Debug endpoint to check quiz data (Admin only)
+     * GET /api/tournaments/{id}/debug
+     */
+    @GetMapping("/{id}/debug")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> debugTournamentData(@PathVariable Long id) {
+        try {
+            Tournament tournament = tournamentRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Tournament not found"));
+
+            List<QuizResult> quizResults = quizResultRepository.findByTournamentOrderByPercentageDescCompletedAtAsc(tournament);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("tournament", Map.of(
+                "id", tournament.getId(),
+                "name", tournament.getName(),
+                "status", tournament.getStatus()
+            ));
+            response.put("quizResultsCount", quizResults.size());
+            response.put("quizResults", quizResults.stream().map(qr -> Map.of(
+                "id", qr.getId(),
+                "user", qr.getUser().getFirstName() + " " + qr.getUser().getLastName(),
+                "email", qr.getUser().getEmail(),
+                "score", qr.getScore(),
+                "totalQuestions", qr.getTotalQuestions(),
+                "percentage", qr.getPercentage(),
+                "passed", qr.getPassed(),
+                "completedAt", qr.getCompletedAt()
+            )).toList());
+            response.put("success", true);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            errorResponse.put("stackTrace", java.util.Arrays.toString(e.getStackTrace()));
+            errorResponse.put("success", false);
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
 }

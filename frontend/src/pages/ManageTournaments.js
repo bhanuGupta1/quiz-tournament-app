@@ -235,6 +235,31 @@ const ManageTournaments = () => {
                 >
                   Results
                 </Link>
+                {process.env.NODE_ENV === 'development' && (
+                  <button 
+                    onClick={async () => {
+                      try {
+                        const response = await api.get(`/api/tournaments/${tournament.id}/debug`);
+                        console.log('Debug data:', response.data);
+                        alert(`Debug Info:\nQuiz Results: ${response.data.quizResultsCount}\nCheck console for details`);
+                      } catch (error) {
+                        console.error('Debug error:', error);
+                        alert('Debug failed: ' + error.message);
+                      }
+                    }}
+                    className="btn"
+                    style={{ 
+                      flex: 1, 
+                      fontSize: '12px', 
+                      padding: '8px',
+                      backgroundColor: '#6c757d',
+                      color: 'white',
+                      border: 'none'
+                    }}
+                  >
+                    Debug
+                  </button>
+                )}
                 <button 
                   onClick={() => handleDeleteTournament(tournament.id)}
                   className="btn"
