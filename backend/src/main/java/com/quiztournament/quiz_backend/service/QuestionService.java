@@ -5,6 +5,7 @@ import com.quiztournament.quiz_backend.dto.QuestionResponse;
 import com.quiztournament.quiz_backend.entity.QuizResult;
 import com.quiztournament.quiz_backend.entity.Tournament;
 import com.quiztournament.quiz_backend.entity.User;
+import com.quiztournament.quiz_backend.entity.UserTournamentScore;
 import com.quiztournament.quiz_backend.repository.QuizResultRepository;
 import com.quiztournament.quiz_backend.repository.TournamentRepository;
 import com.quiztournament.quiz_backend.repository.UserRepository;
@@ -60,10 +61,8 @@ public class QuestionService {
 
         User currentUser = getCurrentUser();
 
-        // Check if user has already participated
-        if (userTournamentScoreRepository.existsByUserAndTournament(currentUser, tournament)) {
-            throw new RuntimeException("You have already participated in this tournament");
-        }
+        // Allow retaking tournaments - previous participation check removed
+        // Users can now retake tournaments and their best/latest score will be recorded
 
         // Check tournament status
         switch (tournament.getStatus()) {
@@ -207,21 +206,64 @@ public class QuestionService {
         long sessionStartTime = session.getStartTime();
         int timeTakenSeconds = (int) ((System.currentTimeMillis() - sessionStartTime) / 1000);
 
-        // Save quiz result to database
+        // Save quiz result to database (both new and legacy tables)
         try {
-            QuizResult quizResult = new QuizResult(
-                currentUser, 
-                tournament, 
-                correctAnswers, 
-                totalQuestions, 
-                percentage, 
-                passed, 
-                timeTakenSeconds
-            );
-            quizResultRepository.save(quizResult);
+            // Save to new QuizResult table
+            Optional<QuizResult> existingResult = quizResultRepository
+                .findByUserAndTournament(currentUser, tournament);
+            
+            if (existingResult.isPresent()) {
+                // Update existing result
+                QuizResult quizResult = existingResult.get();
+                quizResult.setScore(correctAnswers);
+                quizResult.setTotalQuestions(totalQuestions);
+                quizResult.setPercentage(percentage);
+                quizResult.setPassed(passed);
+                quizResult.setTimeTakenSeconds(timeTakenSeconds);
+                quizResult.setCompletedAt(java.time.LocalDateTime.now());
+                quizResultRepository.save(quizResult);
+            } else {
+                // Create new result
+                QuizResult quizResult = new QuizResult(
+                    currentUser, 
+                    tournament, 
+                    correctAnswers, 
+                    totalQuestions, 
+                    percentage, 
+                    passed, 
+                    timeTakenSeconds
+                );
+                quizResultRepository.save(quizResult);
+            }
+
+            // Also save to legacy UserTournamentScore table for leaderboard compatibility
+            // Convert score to out of 10 format expected by legacy system
+            int scoreOutOf10 = (int) Math.round((correctAnswers * 10.0) / totalQuestions);
+            
+            // Check if user already has a score for this tournament
+            Optional<UserTournamentScore> existingScore = userTournamentScoreRepository
+                .findByUserAndTournament(currentUser, tournament);
+            
+            if (existingScore.isPresent()) {
+                // Update existing score
+                UserTournamentScore legacyScore = existingScore.get();
+                legacyScore.setScore(scoreOutOf10);
+                legacyScore.setCompletedAt(java.time.LocalDateTime.now());
+                userTournamentScoreRepository.save(legacyScore);
+            } else {
+                // Create new score
+                UserTournamentScore legacyScore = new UserTournamentScore(
+                    currentUser,
+                    tournament,
+                    scoreOutOf10
+                );
+                userTournamentScoreRepository.save(legacyScore);
+            }
+            
         } catch (Exception e) {
             // Log error but don't fail the quiz completion
             System.err.println("Failed to save quiz result: " + e.getMessage());
+            e.printStackTrace(); // Add stack trace for debugging
         }
 
         // Clean up session

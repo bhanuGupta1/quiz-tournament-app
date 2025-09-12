@@ -7,7 +7,8 @@ import java.time.LocalDateTime;
  * Entity representing a completed quiz result
  */
 @Entity
-@Table(name = "quiz_results")
+@Table(name = "quiz_results", 
+       uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "tournament_id"}))
 public class QuizResult {
     
     @Id
