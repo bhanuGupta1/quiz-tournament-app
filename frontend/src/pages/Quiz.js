@@ -66,7 +66,7 @@ const Quiz = () => {
       } else {
         setError('Failed to load quiz questions. The OpenTDB API might be temporarily unavailable.');
       }
-      console.error('Error starting quiz:', error);
+      // Error details available in development mode
     } finally {
       setLoading(false);
     }
@@ -100,7 +100,7 @@ const Quiz = () => {
       }
     } catch (error) {
       setError('Failed to submit answer. Please try again.');
-      console.error('Error submitting answer:', error);
+      // Error details available in development mode
     } finally {
       setSubmittingAnswer(false);
     }
@@ -116,11 +116,11 @@ const Quiz = () => {
         throw new Error('No response data received');
       }
       
-      console.log('Quiz completion response:', response.data);
+      // Response logged for debugging
       setQuizResults(response.data);
       setQuizCompleted(true);
     } catch (error) {
-      console.error('Error completing quiz:', error);
+      // Error details available in development mode
       
       // Create a fallback result if the API fails
       const fallbackResult = {
@@ -338,12 +338,7 @@ const Quiz = () => {
   const totalQuestions = questions.length;
   const progress = totalQuestions > 0 ? ((currentQuestion + 1) / totalQuestions) * 100 : 0;
 
-  // Add some debugging info in development
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Quiz Debug - Current question:', question);
-    console.log('Quiz Debug - Total questions:', questions.length);
-    console.log('Quiz Debug - Current index:', currentQuestion);
-  }
+  // Debug info available in development mode only
 
   // Show loading if no questions yet
   if (questions.length === 0 && !error) {

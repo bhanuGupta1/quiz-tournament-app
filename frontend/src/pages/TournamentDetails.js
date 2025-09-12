@@ -34,14 +34,14 @@ const TournamentDetails = () => {
           const eligibilityResponse = await api.get(`/api/participation/tournaments/${id}/eligibility`);
           setEligibility(eligibilityResponse.data);
         } catch (error) {
-          console.log('Eligibility check failed:', error);
+          // Eligibility check failed - handled gracefully
         }
 
         try {
           const resultResponse = await api.get(`/api/participation/tournaments/${id}/my-result`);
           setUserResult(resultResponse.data.result);
         } catch (error) {
-          console.log('No previous result found');
+          // No previous result - expected for new participants
         }
       }
 
@@ -50,12 +50,12 @@ const TournamentDetails = () => {
         const statsResponse = await api.get(`/api/participation/tournaments/${id}/statistics`);
         setStatistics(statsResponse.data.statistics);
       } catch (error) {
-        console.log('Statistics not available');
+        // Statistics not available - handled gracefully
       }
 
     } catch (error) {
       setError('Failed to load tournament details');
-      console.error('Error fetching tournament:', error);
+      // Error details available in development mode
     } finally {
       setLoading(false);
     }

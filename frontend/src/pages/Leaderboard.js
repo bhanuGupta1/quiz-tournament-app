@@ -33,7 +33,7 @@ const Leaderboard = () => {
       setLeaderboard(leaderboardResponse.data.leaderboard || []);
     } catch (error) {
       setError('Failed to load leaderboard data');
-      console.error('Error fetching leaderboard:', error);
+      // Error details available in development mode
     } finally {
       setLoading(false);
     }

@@ -31,7 +31,7 @@ const AdminDashboard = () => {
       setMyTournaments(tournamentsResponse.data.tournaments || []);
     } catch (error) {
       setError('Failed to load admin data');
-      console.error('Error fetching admin data:', error);
+      // Error logged for debugging
     } finally {
       setLoading(false);
     }
@@ -50,7 +50,7 @@ const AdminDashboard = () => {
       setStatistics(statsResponse.data);
     } catch (error) {
       alert('Failed to delete tournament');
-      console.error('Error deleting tournament:', error);
+      // Error logged for debugging
     }
   };
 

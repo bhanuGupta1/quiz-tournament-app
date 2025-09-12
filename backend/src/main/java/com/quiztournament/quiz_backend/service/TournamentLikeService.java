@@ -91,7 +91,9 @@ public class TournamentLikeService {
         }
 
         // Remove like
-        tournamentLikeRepository.delete(existingLike.get());
+        if (existingLike.isPresent()) {
+            tournamentLikeRepository.delete(existingLike.get());
+        }
 
         // Get updated like count
         long totalLikes = tournamentLikeRepository.countByTournament(tournament);

@@ -22,3 +22,55 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Backend specific
+backend/target/
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+
+# Frontend specific
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/.eslintcache
+
+# Docker
+.docker/
+
+# Logs
+logs/
+*.log
+
+# Security
+*.pem
+*.key
+*.crt
+
+# Backup files
+*.bak
+*.backup
+*.tmp

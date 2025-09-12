@@ -77,7 +77,7 @@ export const fetchQuestionsFromOpenTDB = async (amount = 10, category = null, di
       throw new Error(`OpenTDB API Error: ${getErrorMessage(data.response_code)}`);
     }
   } catch (error) {
-    console.error('OpenTDB API Error:', error);
+    // OpenTDB API error handled gracefully
     throw error;
   }
 };

@@ -33,6 +33,18 @@ public class HealthController {
         response.put("status", "UP");
         response.put("message", "Quiz Tournament API is running");
         response.put("timestamp", System.currentTimeMillis());
+        response.put("version", "1.0.0");
+        response.put("environment", System.getProperty("spring.profiles.active", "default"));
+        
+        // Add basic system info (non-sensitive)
+        Runtime runtime = Runtime.getRuntime();
+        Map<String, Object> system = new HashMap<>();
+        system.put("processors", runtime.availableProcessors());
+        system.put("maxMemory", runtime.maxMemory() / 1024 / 1024 + " MB");
+        system.put("totalMemory", runtime.totalMemory() / 1024 / 1024 + " MB");
+        system.put("freeMemory", runtime.freeMemory() / 1024 / 1024 + " MB");
+        response.put("system", system);
+        
         return ResponseEntity.ok(response);
     }
 

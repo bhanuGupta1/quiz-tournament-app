@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
       // The user data is returned during login/register
       setLoading(false);
     } catch (error) {
-      console.error('Failed to fetch user profile:', error);
+      // Error handled silently in production
       logout();
     } finally {
       setLoading(false);

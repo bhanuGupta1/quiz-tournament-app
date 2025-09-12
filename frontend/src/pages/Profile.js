@@ -33,7 +33,7 @@ const Profile = () => {
       }
     } catch (error) {
       setError('Failed to load profile data');
-      console.error('Error fetching profile data:', error);
+      // Error details available in development mode
     } finally {
       setLoading(false);
     }

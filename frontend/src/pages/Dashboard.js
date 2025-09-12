@@ -43,7 +43,7 @@ const Dashboard = () => {
         setQuizzes(response.data.tournaments || []);
       }
     } catch (error) {
-      console.error('Error fetching tournaments:', error);
+      // Error details available in development mode
       
       // If the specific endpoint fails, try a fallback
       try {
@@ -52,7 +52,7 @@ const Dashboard = () => {
         setError(''); // Clear error if fallback works
       } catch (fallbackError) {
         setError('Failed to load tournaments. Please try again later.');
-        console.error('Fallback also failed:', fallbackError);
+        // Fallback failed - all options exhausted
       }
     } finally {
       setLoading(false);

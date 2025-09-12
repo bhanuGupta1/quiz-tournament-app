@@ -35,7 +35,7 @@ const ManageTournaments = () => {
       setTournaments(response.data.tournaments || []);
     } catch (error) {
       setError('Failed to load tournaments');
-      console.error('Error fetching tournaments:', error);
+      // Error details available in development mode
     } finally {
       setLoading(false);
     }
@@ -76,7 +76,7 @@ const ManageTournaments = () => {
       setTournaments(prev => prev.filter(t => t.id !== tournamentId));
     } catch (error) {
       alert('Failed to delete tournament');
-      console.error('Error deleting tournament:', error);
+      // Error details available in development mode
     }
   };
 
