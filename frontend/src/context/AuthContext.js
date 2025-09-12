@@ -45,6 +45,11 @@ export const AuthProvider = ({ children }) => {
         username: email, // Backend expects username field
         password 
       });
+      
+      if (!response.data || !response.data.token) {
+        throw new Error('Invalid response from server');
+      }
+      
       const { token, user: userData } = response.data;
       
       localStorage.setItem('token', token);
@@ -53,9 +58,10 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
+      console.error('Login error:', error);
       return { 
         success: false, 
-        error: error.response?.data?.error || 'Login failed' 
+        error: error.response?.data?.error || error.message || 'Login failed' 
       };
     }
   };

@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import HealthCheck from '../components/HealthCheck';
 import api from '../services/api';
 
 const Dashboard = () => {
@@ -42,8 +43,11 @@ const Dashboard = () => {
         response = await api.get('/api/tournaments/status/ongoing');
         setQuizzes(response.data.tournaments || []);
       }
+      
+      // Clear any previous errors on successful load
+      setError('');
     } catch (error) {
-      // Error details available in development mode
+      console.error('Primary tournament fetch failed:', error);
       
       // If the specific endpoint fails, try a fallback
       try {
@@ -51,8 +55,21 @@ const Dashboard = () => {
         setQuizzes(fallbackResponse.data.tournaments || []);
         setError(''); // Clear error if fallback works
       } catch (fallbackError) {
-        setError('Failed to load tournaments. Please try again later.');
-        // Fallback failed - all options exhausted
+        console.error('Fallback tournament fetch failed:', fallbackError);
+        
+        // Try one more fallback for admins
+        if (user.role === 'ADMIN') {
+          try {
+            const adminFallback = await api.get('/api/tournaments/statistics');
+            if (adminFallback.data.success) {
+              setError('Tournaments service is running but no tournaments found. Create your first tournament!');
+            }
+          } catch (adminError) {
+            setError('Unable to connect to tournament service. Please check if the backend is running.');
+          }
+        } else {
+          setError('No tournaments available at the moment. Please check back later.');
+        }
       }
     } finally {
       setLoading(false);
@@ -185,9 +202,25 @@ const Dashboard = () => {
               }
             </p>
             {user?.role === 'ADMIN' && (
-              <Link to="/admin/create-tournament" className="btn btn-primary" style={{ marginTop: '15px' }}>
-                Create First Tournament
-              </Link>
+              <div>
+                <Link to="/admin/create-tournament" className="btn btn-primary" style={{ marginTop: '15px' }}>
+                  Create First Tournament
+                </Link>
+                <button 
+                  onClick={async () => {
+                    try {
+                      const health = await api.get('/api/health');
+                      alert(`Backend Status: ${health.data.status}\nMessage: ${health.data.message}`);
+                    } catch (err) {
+                      alert(`Backend Error: ${err.message}\nPlease ensure the backend is running on port 8080`);
+                    }
+                  }}
+                  className="btn btn-secondary" 
+                  style={{ marginTop: '15px', marginLeft: '10px' }}
+                >
+                  Test Backend Connection
+                </button>
+              </div>
             )}
           </div>
         )}
@@ -216,6 +249,9 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+      
+      {/* Health Check Component for debugging */}
+      {process.env.NODE_ENV === 'development' && <HealthCheck />}
     </div>
   );
 };
