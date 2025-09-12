@@ -235,6 +235,11 @@ public class QuizParticipationController {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", e.getMessage());
             errorResponse.put("success", false);
+            
+            // Debug logging for leaderboard issues
+            System.err.println("Leaderboard error for tournament " + id + ": " + e.getMessage());
+            e.printStackTrace();
+            
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }
