@@ -33,14 +33,17 @@ const Dashboard = () => {
       if (user.role === 'ADMIN') {
         // Admins can see all tournaments
         response = await api.get('/api/tournaments');
+        console.log('Admin tournaments response:', response.data);
         setQuizzes(response.data.tournaments || []);
       } else if (user.role === 'PLAYER') {
         // Players see available tournaments
         response = await api.get('/api/participation/available-tournaments');
+        console.log('Player available tournaments response:', response.data);
         setQuizzes(response.data.tournaments || []);
       } else {
         // Fallback: try to get tournaments by status
         response = await api.get('/api/tournaments/status/ongoing');
+        console.log('Fallback tournaments response:', response.data);
         setQuizzes(response.data.tournaments || []);
       }
       
@@ -111,6 +114,60 @@ const Dashboard = () => {
             <Link to="/admin/tournaments" className="btn btn-secondary">
               Manage All Tournaments
             </Link>
+            <button 
+              onClick={async () => {
+                try {
+                  const allTournaments = await api.get('/api/tournaments');
+                  console.log('All tournaments:', allTournaments.data);
+                  alert(`Found ${allTournaments.data.tournaments?.length || 0} total tournaments`);
+                } catch (err) {
+                  alert(`Error fetching tournaments: ${err.message}`);
+                }
+              }}
+              className="btn btn-info"
+              style={{ backgroundColor: '#17a2b8', color: 'white' }}
+            >
+              Debug: Check All Tournaments
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Player Debug Actions */}
+      {user?.role === 'PLAYER' && process.env.NODE_ENV === 'development' && (
+        <div className="card" style={{ marginBottom: '30px', background: '#f8f9fa' }}>
+          <h4>Debug Tools (Development Only)</h4>
+          <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+            <button 
+              onClick={async () => {
+                try {
+                  const available = await api.get('/api/participation/available-tournaments');
+                  console.log('Available tournaments:', available.data);
+                  alert(`Available: ${available.data.tournaments?.length || 0} tournaments`);
+                } catch (err) {
+                  alert(`Error: ${err.message}`);
+                }
+              }}
+              className="btn btn-info"
+              style={{ backgroundColor: '#17a2b8', color: 'white', fontSize: '12px', padding: '6px 12px' }}
+            >
+              Check Available
+            </button>
+            <button 
+              onClick={async () => {
+                try {
+                  const ongoing = await api.get('/api/tournaments/status/ongoing');
+                  console.log('Ongoing tournaments:', ongoing.data);
+                  alert(`Ongoing: ${ongoing.data.tournaments?.length || 0} tournaments`);
+                } catch (err) {
+                  alert(`Error: ${err.message}`);
+                }
+              }}
+              className="btn btn-info"
+              style={{ backgroundColor: '#17a2b8', color: 'white', fontSize: '12px', padding: '6px 12px' }}
+            >
+              Check Ongoing
+            </button>
           </div>
         </div>
       )}

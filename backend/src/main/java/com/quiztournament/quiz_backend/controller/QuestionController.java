@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -169,9 +170,34 @@ public class QuestionController {
             responseBody.put("percentage", Math.round(result.getPercentage() * 100.0) / 100.0);
             responseBody.put("passed", result.isPassed());
             responseBody.put("minPassingScore", result.getMinPassingScore());
-            responseBody.put("answerHistory", result.getAnswerHistory());
             responseBody.put("tournamentId", id);
             responseBody.put("success", true);
+
+            // Format answer history for frontend
+            List<Map<String, Object>> formattedAnswerHistory = new ArrayList<>();
+            Map<Integer, QuestionService.UserAnswer> answerHistory = result.getAnswerHistory();
+            
+            for (int i = 1; i <= result.getTotalQuestions(); i++) {
+                Map<String, Object> answerData = new HashMap<>();
+                QuestionService.UserAnswer userAnswer = answerHistory.get(i);
+                
+                if (userAnswer != null) {
+                    answerData.put("correct", userAnswer.isCorrect());
+                    answerData.put("userAnswer", userAnswer.getAnswer());
+                    answerData.put("correctAnswer", userAnswer.getCorrectAnswer());
+                    answerData.put("question", userAnswer.getQuestion());
+                } else {
+                    // Handle case where no answer was provided
+                    answerData.put("correct", false);
+                    answerData.put("userAnswer", "");
+                    answerData.put("correctAnswer", "");
+                    answerData.put("question", "");
+                }
+                
+                formattedAnswerHistory.add(answerData);
+            }
+            
+            responseBody.put("answerHistory", formattedAnswerHistory);
 
             if (result.isPassed()) {
                 responseBody.put("message", "Congratulations! You passed the quiz with " +

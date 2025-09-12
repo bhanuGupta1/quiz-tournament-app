@@ -3,7 +3,11 @@ package com.quiztournament.quiz_backend.controller;
 import com.quiztournament.quiz_backend.dto.TournamentCreateRequest;
 import com.quiztournament.quiz_backend.dto.TournamentUpdateRequest;
 import com.quiztournament.quiz_backend.dto.TournamentResponse;
+import com.quiztournament.quiz_backend.entity.QuizResult;
+import com.quiztournament.quiz_backend.entity.Tournament;
 import com.quiztournament.quiz_backend.entity.TournamentStatus;
+import com.quiztournament.quiz_backend.repository.QuizResultRepository;
+import com.quiztournament.quiz_backend.repository.TournamentRepository;
 import com.quiztournament.quiz_backend.service.TournamentService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +31,12 @@ public class TournamentController {
 
     @Autowired
     private TournamentService tournamentService;
+
+    @Autowired
+    private QuizResultRepository quizResultRepository;
+
+    @Autowired
+    private TournamentRepository tournamentRepository;
 
     /**
      * Create a new tournament (Admin only)
@@ -288,5 +298,44 @@ public class TournamentController {
         response.put("timestamp", System.currentTimeMillis());
         response.put("success", true);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get quiz results for a tournament (Admin only)
+     * GET /api/tournaments/{id}/results
+     */
+    @GetMapping("/{id}/results")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getTournamentResults(@PathVariable Long id) {
+        try {
+            Tournament tournament = tournamentRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Tournament not found"));
+
+            List<QuizResult> results = quizResultRepository.findByTournamentOrderByPercentageDescCompletedAtAsc(tournament);
+            
+            // Calculate statistics
+            long totalParticipants = results.size();
+            long passedCount = results.stream().mapToLong(r -> r.getPassed() ? 1 : 0).sum();
+            double averageScore = results.stream().mapToDouble(QuizResult::getPercentage).average().orElse(0.0);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("tournament", tournament);
+            response.put("results", results);
+            response.put("statistics", Map.of(
+                "totalParticipants", totalParticipants,
+                "passedCount", passedCount,
+                "failedCount", totalParticipants - passedCount,
+                "passRate", totalParticipants > 0 ? (passedCount * 100.0 / totalParticipants) : 0.0,
+                "averageScore", Math.round(averageScore * 100.0) / 100.0
+            ));
+            response.put("success", true);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            errorResponse.put("success", false);
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
     }
 }

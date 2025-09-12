@@ -221,6 +221,20 @@ const ManageTournaments = () => {
                 >
                   Leaderboard
                 </Link>
+                <Link 
+                  to={`/admin/tournament/${tournament.id}/results`} 
+                  className="btn btn-info"
+                  style={{ 
+                    flex: 1, 
+                    fontSize: '14px', 
+                    padding: '8px',
+                    backgroundColor: '#17a2b8',
+                    color: 'white',
+                    border: 'none'
+                  }}
+                >
+                  Results
+                </Link>
                 <button 
                   onClick={() => handleDeleteTournament(tournament.id)}
                   className="btn"

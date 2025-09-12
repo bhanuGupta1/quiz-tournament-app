@@ -2,8 +2,10 @@ package com.quiztournament.quiz_backend.service;
 
 import com.quiztournament.quiz_backend.dto.OpenTDBQuestion;
 import com.quiztournament.quiz_backend.dto.QuestionResponse;
+import com.quiztournament.quiz_backend.entity.QuizResult;
 import com.quiztournament.quiz_backend.entity.Tournament;
 import com.quiztournament.quiz_backend.entity.User;
+import com.quiztournament.quiz_backend.repository.QuizResultRepository;
 import com.quiztournament.quiz_backend.repository.TournamentRepository;
 import com.quiztournament.quiz_backend.repository.UserRepository;
 import com.quiztournament.quiz_backend.repository.UserTournamentScoreRepository;
@@ -34,6 +36,9 @@ public class QuestionService {
 
     @Autowired
     private UserTournamentScoreRepository userTournamentScoreRepository;
+
+    @Autowired
+    private QuizResultRepository quizResultRepository;
 
     // In-memory cache for tournament questions
     // Key: tournamentId, Value: List of questions
@@ -136,7 +141,7 @@ public class QuestionService {
         boolean isCorrect = question.isCorrectAnswer(userAnswer);
 
         // Store answer in session
-        session.recordAnswer(questionNumber, userAnswer, isCorrect);
+        session.recordAnswer(questionNumber, userAnswer, isCorrect, question.getCorrectAnswer(), question.getQuestion());
 
         return new AnswerValidationResult(
                 isCorrect,
@@ -198,8 +203,26 @@ public class QuestionService {
         double percentage = (correctAnswers * 100.0) / totalQuestions;
         boolean passed = percentage >= tournament.getMinPassingScore();
 
-        // Save score to database (this will be implemented in Phase 5)
-        // For now, just return the result
+        // Calculate time taken (rough estimate based on session duration)
+        long sessionStartTime = session.getStartTime();
+        int timeTakenSeconds = (int) ((System.currentTimeMillis() - sessionStartTime) / 1000);
+
+        // Save quiz result to database
+        try {
+            QuizResult quizResult = new QuizResult(
+                currentUser, 
+                tournament, 
+                correctAnswers, 
+                totalQuestions, 
+                percentage, 
+                passed, 
+                timeTakenSeconds
+            );
+            quizResultRepository.save(quizResult);
+        } catch (Exception e) {
+            // Log error but don't fail the quiz completion
+            System.err.println("Failed to save quiz result: " + e.getMessage());
+        }
 
         // Clean up session
         userQuizSessions.remove(sessionKey);
@@ -309,8 +332,8 @@ public class QuestionService {
             this.startTime = System.currentTimeMillis();
         }
 
-        public void recordAnswer(int questionNumber, String answer, boolean isCorrect) {
-            answers.put(questionNumber, new UserAnswer(answer, isCorrect, System.currentTimeMillis()));
+        public void recordAnswer(int questionNumber, String answer, boolean isCorrect, String correctAnswer, String question) {
+            answers.put(questionNumber, new UserAnswer(answer, isCorrect, System.currentTimeMillis(), correctAnswer, question));
         }
 
         public int getCurrentQuestionNumber() {
@@ -334,6 +357,10 @@ public class QuestionService {
         public Map<Integer, UserAnswer> getAnswerHistory() {
             return new HashMap<>(answers);
         }
+
+        public long getStartTime() {
+            return startTime;
+        }
     }
 
     /**
@@ -343,16 +370,22 @@ public class QuestionService {
         private final String answer;
         private final boolean correct;
         private final long timestamp;
+        private final String correctAnswer;
+        private final String question;
 
-        public UserAnswer(String answer, boolean correct, long timestamp) {
+        public UserAnswer(String answer, boolean correct, long timestamp, String correctAnswer, String question) {
             this.answer = answer;
             this.correct = correct;
             this.timestamp = timestamp;
+            this.correctAnswer = correctAnswer;
+            this.question = question;
         }
 
         public String getAnswer() { return answer; }
         public boolean isCorrect() { return correct; }
         public long getTimestamp() { return timestamp; }
+        public String getCorrectAnswer() { return correctAnswer; }
+        public String getQuestion() { return question; }
     }
 
     /**
