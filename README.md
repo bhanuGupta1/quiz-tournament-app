@@ -101,16 +101,11 @@ start-dev.bat
 
 ## 🔑 Login Credentials
 
-### 🚀 Quick Test Logins (Easy Access)
-- **Admin**: `admin` / `admin`
+### 🚀 Quick Test Logins
+- **Admin**: `admin` / `op@1234` (full tournament management, system statistics)
 - **Player**: `user` / `user`  
 - **Player 1**: `player1` / `password`
 - **Player 2**: `player2` / `password`
-
-### 🔐 Original Admin Access
-- **Username**: `admin`
-- **Password**: `op@1234`
-- **Capabilities**: Full tournament management, system statistics
 
 ### 📝 Player Registration
 - Register new players at: http://localhost:3000/register

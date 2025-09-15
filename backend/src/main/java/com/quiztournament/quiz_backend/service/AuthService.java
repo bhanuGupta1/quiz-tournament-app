@@ -151,18 +151,7 @@ public class AuthService {
      */
     public void createTestUsers() {
         try {
-            // Create simple admin user
-            if (!userRepository.existsByUsername("admin")) {
-                User admin = new User();
-                admin.setUsername("admin");
-                admin.setFirstName("Test");
-                admin.setLastName("Admin");
-                admin.setEmail("admin@test.com");
-                admin.setPassword("admin");
-                admin.setRole(UserRole.ADMIN);
-                registerAdmin(admin);
-                System.out.println("Test admin user created - Username: admin, Password: admin");
-            }
+            // Note: Using existing admin account (admin/op@1234) - no duplicate admin created
 
             // Create simple player user
             if (!userRepository.existsByUsername("user")) {

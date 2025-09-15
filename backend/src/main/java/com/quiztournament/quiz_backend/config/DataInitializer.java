@@ -49,14 +49,11 @@ public class DataInitializer implements CommandLineRunner {
             createSampleTournaments();
 
             System.out.println("=== Quiz Tournament Application Started ===");
-            System.out.println("🔑 Easy Test Login Credentials:");
-            System.out.println("👤 Admin: username=admin, password=admin");
+            System.out.println("🔑 Test Login Credentials:");
+            System.out.println("👤 Admin: username=admin, password=op@1234");
             System.out.println("👤 Player: username=user, password=user");
             System.out.println("👤 Player1: username=player1, password=password");
             System.out.println("👤 Player2: username=player2, password=password");
-            System.out.println("");
-            System.out.println("🔐 Original Admin Credentials:");
-            System.out.println("Username: admin, Password: op@1234");
             System.out.println("");
             System.out.println("✅ Sample tournaments created for testing");
             System.out.println("🌐 Frontend: http://localhost:3000");

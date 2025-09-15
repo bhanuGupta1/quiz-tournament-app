@@ -108,7 +108,7 @@ const Login = () => {
               <strong>Admin:</strong> 
               <button 
                 type="button"
-                onClick={() => setFormData({ username: 'admin', password: 'admin' })}
+                onClick={() => setFormData({ username: 'admin', password: 'op@1234' })}
                 style={{ 
                   marginLeft: '8px', 
                   padding: '2px 8px', 
@@ -120,7 +120,7 @@ const Login = () => {
                   cursor: 'pointer'
                 }}
               >
-                admin / admin
+                admin / op@1234
               </button>
             </div>
             <div style={{ marginBottom: '8px' }}>
