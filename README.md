@@ -49,7 +49,7 @@ A comprehensive full-stack quiz tournament platform built with Spring Boot backe
 - **Spring Boot 3.1.5** - Main framework
 - **Spring Security** - Authentication and authorization
 - **Spring Data JPA** - Database operations
-- **H2/PostgreSQL** - Database options
+- **H2 Database** - Persistent file-based database (data survives restarts)
 - **JWT (JJWT 0.11.5)** - Token-based authentication
 - **OpenTDB API** - Quiz questions source
 - **Maven** - Build tool
@@ -118,9 +118,10 @@ start-dev.bat
 
 - **Swagger UI**: http://localhost:8080/swagger-ui.html
 - **H2 Database Console**: http://localhost:8080/h2-console
-  - JDBC URL: `jdbc:h2:mem:quiz_tournament`
+  - JDBC URL: `jdbc:h2:file:./data/quiz_tournament`
   - Username: `sa`
   - Password: (empty)
+  - **Note**: Database is persistent - your data survives application restarts!
 - **Health Check**: http://localhost:8080/api/health
 - **OpenTDB Status**: http://localhost:8080/api/tournaments/questions/health
 
@@ -172,6 +173,21 @@ cd frontend
 npm test                   # Jest tests
 npm run build             # Production build test
 ```
+
+## 💾 Data Persistence
+
+### Database Storage
+- **Persistent Database**: Uses H2 file-based database stored in `./data/` directory
+- **Data Survives Restarts**: All user registrations, quiz results, and tournaments are preserved
+- **Automatic Backup**: Database files are automatically maintained by H2
+- **Reset Data**: Delete the `./data/` directory to start fresh (will recreate test users)
+
+### What Gets Saved
+- ✅ **User Registrations**: All registered users persist between sessions
+- ✅ **Quiz Results**: Completed quiz attempts and detailed answers
+- ✅ **Tournament Data**: Created tournaments and their configurations  
+- ✅ **Performance History**: User statistics and leaderboard data
+- ✅ **Admin Data**: Tournament management and system settings
 
 ## 🔍 Troubleshooting
 

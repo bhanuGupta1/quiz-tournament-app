@@ -52,6 +52,12 @@ backend/.mvn/
 backend/mvnw
 backend/mvnw.cmd
 
+# Database files (H2 persistent database)
+data/
+*.db
+*.mv.db
+*.trace.db
+
 # Frontend specific
 frontend/node_modules/
 frontend/build/
