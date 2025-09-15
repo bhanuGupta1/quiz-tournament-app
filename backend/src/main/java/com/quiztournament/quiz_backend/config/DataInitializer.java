@@ -42,14 +42,26 @@ public class DataInitializer implements CommandLineRunner {
             // Create default admin user
             authService.createDefaultAdmin();
             
+            // Create simple test users for easy testing
+            authService.createTestUsers();
+            
             // Create sample tournaments for demonstration
             createSampleTournaments();
 
             System.out.println("=== Quiz Tournament Application Started ===");
-            System.out.println("Default Admin Credentials:");
-            System.out.println("Username: admin");
-            System.out.println("Password: op@1234");
-            System.out.println("Sample tournaments created for testing");
+            System.out.println("🔑 Easy Test Login Credentials:");
+            System.out.println("👤 Admin: username=admin, password=admin");
+            System.out.println("👤 Player: username=user, password=user");
+            System.out.println("👤 Player1: username=player1, password=password");
+            System.out.println("👤 Player2: username=player2, password=password");
+            System.out.println("");
+            System.out.println("🔐 Original Admin Credentials:");
+            System.out.println("Username: admin, Password: op@1234");
+            System.out.println("");
+            System.out.println("✅ Sample tournaments created for testing");
+            System.out.println("🌐 Frontend: http://localhost:3000");
+            System.out.println("🔧 Backend API: http://localhost:8080");
+            System.out.println("📚 Swagger UI: http://localhost:8080/swagger-ui.html");
             System.out.println("==========================================");
         } catch (Exception e) {
             System.err.println("Error during data initialization: " + e.getMessage());

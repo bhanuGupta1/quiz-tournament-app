@@ -147,6 +147,69 @@ public class AuthService {
     }
 
     /**
+     * Create simple test users for easy testing
+     */
+    public void createTestUsers() {
+        try {
+            // Create simple admin user
+            if (!userRepository.existsByUsername("admin")) {
+                User admin = new User();
+                admin.setUsername("admin");
+                admin.setFirstName("Test");
+                admin.setLastName("Admin");
+                admin.setEmail("admin@test.com");
+                admin.setPassword("admin");
+                admin.setRole(UserRole.ADMIN);
+                registerAdmin(admin);
+                System.out.println("Test admin user created - Username: admin, Password: admin");
+            }
+
+            // Create simple player user
+            if (!userRepository.existsByUsername("user")) {
+                User player = new User();
+                player.setUsername("user");
+                player.setFirstName("Test");
+                player.setLastName("Player");
+                player.setEmail("user@test.com");
+                player.setPassword("user");
+                player.setRole(UserRole.PLAYER);
+                registerPlayer(player);
+                System.out.println("Test player user created - Username: user, Password: user");
+            }
+
+            // Create additional test players
+            if (!userRepository.existsByUsername("player1")) {
+                User player1 = new User();
+                player1.setUsername("player1");
+                player1.setFirstName("John");
+                player1.setLastName("Doe");
+                player1.setEmail("john@test.com");
+                player1.setPassword("password");
+                player1.setRole(UserRole.PLAYER);
+                registerPlayer(player1);
+                System.out.println("Test player1 user created - Username: player1, Password: password");
+            }
+
+            if (!userRepository.existsByUsername("player2")) {
+                User player2 = new User();
+                player2.setUsername("player2");
+                player2.setFirstName("Jane");
+                player2.setLastName("Smith");
+                player2.setEmail("jane@test.com");
+                player2.setPassword("password");
+                player2.setRole(UserRole.PLAYER);
+                registerPlayer(player2);
+                System.out.println("Test player2 user created - Username: player2, Password: password");
+            }
+
+        } catch (Exception e) {
+            System.err.println("Failed to create test users: " + e.getMessage());
+            // Don't throw exception to avoid breaking application startup
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Find user by username or email
      * @param identifier Username or email
      * @return User if found

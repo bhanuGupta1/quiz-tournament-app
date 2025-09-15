@@ -99,17 +99,25 @@ Frontend will start on: http://localhost:3000
 start-dev.bat
 ```
 
-## 🔑 Default Credentials
+## 🔑 Login Credentials
 
-### Admin Access
+### 🚀 Quick Test Logins (Easy Access)
+- **Admin**: `admin` / `admin`
+- **Player**: `user` / `user`  
+- **Player 1**: `player1` / `password`
+- **Player 2**: `player2` / `password`
+
+### 🔐 Original Admin Access
 - **Username**: `admin`
 - **Password**: `op@1234`
 - **Capabilities**: Full tournament management, system statistics
 
-### Player Registration
+### 📝 Player Registration
 - Register new players at: http://localhost:3000/register
 - **Required Fields**: Username, First Name, Last Name, Email, Password
 - **Optional Fields**: Phone, City, Preferred Category
+
+> 💡 **Tip**: Use the quick test logins for easy development and testing. The login page has clickable buttons to auto-fill these credentials.
 
 ## 📊 API Documentation & Monitoring
 

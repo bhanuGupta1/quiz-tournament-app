@@ -91,6 +91,78 @@ const Login = () => {
         <p style={{ textAlign: 'center', marginTop: '20px' }}>
           Don't have an account? <Link to="/register">Sign up here</Link>
         </p>
+
+        {/* Test Credentials Helper */}
+        <div style={{ 
+          marginTop: '20px', 
+          padding: '15px', 
+          backgroundColor: '#e7f3ff', 
+          borderRadius: '8px',
+          border: '1px solid #b3d9ff'
+        }}>
+          <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#0066cc' }}>
+            🔑 Quick Test Logins
+          </h4>
+          <div style={{ fontSize: '13px', color: '#333' }}>
+            <div style={{ marginBottom: '8px' }}>
+              <strong>Admin:</strong> 
+              <button 
+                type="button"
+                onClick={() => setFormData({ username: 'admin', password: 'admin' })}
+                style={{ 
+                  marginLeft: '8px', 
+                  padding: '2px 8px', 
+                  fontSize: '12px',
+                  backgroundColor: '#007bff',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                admin / admin
+              </button>
+            </div>
+            <div style={{ marginBottom: '8px' }}>
+              <strong>Player:</strong> 
+              <button 
+                type="button"
+                onClick={() => setFormData({ username: 'user', password: 'user' })}
+                style={{ 
+                  marginLeft: '8px', 
+                  padding: '2px 8px', 
+                  fontSize: '12px',
+                  backgroundColor: '#28a745',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                user / user
+              </button>
+            </div>
+            <div>
+              <strong>More Players:</strong> 
+              <button 
+                type="button"
+                onClick={() => setFormData({ username: 'player1', password: 'password' })}
+                style={{ 
+                  marginLeft: '8px', 
+                  padding: '2px 8px', 
+                  fontSize: '12px',
+                  backgroundColor: '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                player1 / password
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
