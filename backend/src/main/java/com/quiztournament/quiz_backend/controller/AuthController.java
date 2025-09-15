@@ -1,12 +1,15 @@
 package com.quiztournament.quiz_backend.controller;
 
 import com.quiztournament.quiz_backend.dto.LoginRequest;
+import com.quiztournament.quiz_backend.dto.ProfileUpdateRequest;
 import com.quiztournament.quiz_backend.dto.RegisterRequest;
 import com.quiztournament.quiz_backend.entity.User;
 import com.quiztournament.quiz_backend.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -144,5 +147,41 @@ public class AuthController {
         userResponse.put("preferredCategory", user.getPreferredCategory());
         userResponse.put("picture", user.getPicture());
         return userResponse;
+    }
+
+    /**
+     * Update user profile endpoint
+     * @param profileUpdateRequest Updated profile information
+     * @return Updated user information
+     */
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(@Valid @RequestBody ProfileUpdateRequest profileUpdateRequest) {
+        try {
+            // Get current user
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "User not authenticated");
+                errorResponse.put("success", false);
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+            com.quiztournament.quiz_backend.service.CustomUserDetailsService.CustomUserPrincipal userPrincipal = 
+                (com.quiztournament.quiz_backend.service.CustomUserDetailsService.CustomUserPrincipal) authentication.getPrincipal();
+
+            User updatedUser = authService.updateProfile(userPrincipal.getId(), profileUpdateRequest);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Profile updated successfully");
+            response.put("user", createUserResponse(updatedUser));
+            response.put("success", true);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            errorResponse.put("success", false);
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
     }
 }

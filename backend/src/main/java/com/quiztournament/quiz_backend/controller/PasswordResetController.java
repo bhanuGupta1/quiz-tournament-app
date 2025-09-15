@@ -1,5 +1,7 @@
 package com.quiztournament.quiz_backend.controller;
 
+import com.quiztournament.quiz_backend.dto.ForgotPasswordRequest;
+import com.quiztournament.quiz_backend.dto.ResetPasswordRequest;
 import com.quiztournament.quiz_backend.service.PasswordResetService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;

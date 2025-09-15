@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import MyAnswersModal from '../components/MyAnswersModal';
+import ProfileUpdateModal from '../components/ProfileUpdateModal';
 import api from '../services/api';
 
 const Profile = () => {
@@ -14,6 +15,7 @@ const Profile = () => {
   const [error, setError] = useState('');
   const [showMyAnswersModal, setShowMyAnswersModal] = useState(false);
   const [selectedTournament, setSelectedTournament] = useState(null);
+  const [showProfileUpdateModal, setShowProfileUpdateModal] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -58,6 +60,12 @@ const Profile = () => {
     setShowMyAnswersModal(true);
   };
 
+  const handleProfileUpdateSuccess = (updatedUser) => {
+    // Update the user context with new data
+    // This would require updating the AuthContext, but for now we'll just refresh
+    window.location.reload();
+  };
+
   if (loading) {
     return (
       <div className="container">
@@ -72,7 +80,15 @@ const Profile = () => {
     <div className="container">
       {/* Profile Header */}
       <div className="card" style={{ marginBottom: '30px' }}>
-        <h1>👤 My Profile</h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h1 style={{ margin: 0 }}>👤 My Profile</h1>
+          <button 
+            onClick={() => setShowProfileUpdateModal(true)}
+            className="btn btn-primary"
+          >
+            Edit Profile
+          </button>
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginTop: '20px' }}>
           <div>
             <strong>Username:</strong>
@@ -100,21 +116,17 @@ const Profile = () => {
               {user.role}
             </div>
           </div>
-          {user.city && (
-            <div>
-              <strong>City:</strong>
-              <div>{user.city}</div>
-            </div>
-          )}
-          {user.phoneNumber && (
-            <div>
-              <strong>Phone:</strong>
-              <div>{user.phoneNumber}</div>
-            </div>
-          )}
-          {user.preferredCategory && (
-            <div>
-              <strong>Preferred Category:</strong>
+          <div>
+            <strong>Phone:</strong>
+            <div>{user.phoneNumber || 'Not provided'}</div>
+          </div>
+          <div>
+            <strong>City:</strong>
+            <div>{user.city || 'Not provided'}</div>
+          </div>
+          <div>
+            <strong>Preferred Category:</strong>
+            <div>{user.preferredCategory || 'Not selected'}</div>
               <div>{user.preferredCategory}</div>
             </div>
           )}
@@ -303,6 +315,13 @@ const Profile = () => {
           setSelectedTournament(null);
         }}
         tournament={selectedTournament}
+      />
+
+      {/* Profile Update Modal */}
+      <ProfileUpdateModal
+        isOpen={showProfileUpdateModal}
+        onClose={() => setShowProfileUpdateModal(false)}
+        onSuccess={handleProfileUpdateSuccess}
       />
     </div>
   );

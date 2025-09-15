@@ -7,7 +7,8 @@ const TournamentTable = ({
   onDelete, 
   onViewQuestions,
   onViewDetails,
-  onViewDetailedAnswers 
+  onViewDetailedAnswers,
+  onViewScores 
 }) => {
   const [sortField, setSortField] = useState('name');
   const [sortDirection, setSortDirection] = useState('asc');
@@ -158,6 +159,13 @@ const TournamentTable = ({
                       title="View detailed user answers"
                     >
                       Answers
+                    </button>
+                    <button
+                      onClick={() => onViewScores(tournament)}
+                      className="btn-action btn-success"
+                      title="View enhanced tournament scores"
+                    >
+                      Scores
                     </button>
                     <button
                       onClick={() => onDelete(tournament.id, tournament.name)}

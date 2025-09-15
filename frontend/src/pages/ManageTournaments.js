@@ -122,6 +122,10 @@ const ManageTournaments = () => {
     setShowDetailedAnswersModal(true);
   };
 
+  const handleViewScores = (tournament) => {
+    navigate(`/enhanced-scores/${tournament.id}`);
+  };
+
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
       case 'upcoming': return '#28a745';
@@ -250,6 +254,7 @@ const ManageTournaments = () => {
             onViewQuestions={handleViewQuestions}
             onViewDetails={handleViewDetails}
             onViewDetailedAnswers={handleViewDetailedAnswers}
+            onViewScores={handleViewScores}
           />
         ) : (
           /* Grid view for visual preference */
@@ -346,11 +351,11 @@ const ManageTournaments = () => {
                 </Link>
                 
                 <Link 
-                  to={`/leaderboard/${tournament.id}`} 
-                  className="btn btn-primary"
+                  to={`/enhanced-scores/${tournament.id}`} 
+                  className="btn btn-success"
                   style={{ flex: '1 1 auto', fontSize: '14px', padding: '8px', minWidth: '80px' }}
                 >
-                  Leaderboard
+                  Scores
                 </Link>
                 
                 <button 

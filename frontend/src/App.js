@@ -13,7 +13,9 @@ import ManageTournaments from './pages/ManageTournaments';
 import TournamentDetails from './pages/TournamentDetails';
 import TournamentResults from './pages/TournamentResults';
 import Leaderboard from './pages/Leaderboard';
+import EnhancedLeaderboard from './pages/EnhancedLeaderboard';
 import Profile from './pages/Profile';
+import ForgotPassword from './pages/ForgotPassword';
 import { AuthProvider } from './context/AuthContext';
 import './App.css';
 
@@ -38,7 +40,9 @@ function App() {
                   <Route path="/tournament/:id" element={<TournamentDetails />} />
                   <Route path="/tournament/:id/quiz" element={<Quiz />} />
                   <Route path="/leaderboard/:id" element={<Leaderboard />} />
+                  <Route path="/enhanced-scores/:id" element={<EnhancedLeaderboard />} />
                   <Route path="/profile" element={<Profile />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
                 </Routes>
               </ErrorBoundary>
             </main>

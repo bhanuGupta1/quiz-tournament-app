@@ -94,9 +94,10 @@ const Login = () => {
           </button>
         </form>
 
-        <p style={{ textAlign: 'center', marginTop: '20px' }}>
-          Don't have an account? <Link to="/register">Sign up here</Link>
-        </p>
+        <div style={{ textAlign: 'center', marginTop: '20px' }}>
+          <p>Don't have an account? <Link to="/register">Sign up here</Link></p>
+          <p><Link to="/forgot-password">Forgot your password?</Link></p>
+        </div>
 
         {/* Test Credentials Helper */}
         <div style={{ 

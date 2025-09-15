@@ -199,6 +199,42 @@ public class AuthService {
     }
 
     /**
+     * Update user profile
+     * @param userId User ID
+     * @param profileUpdateRequest Updated profile information
+     * @return Updated user
+     */
+    public User updateProfile(Long userId, com.quiztournament.quiz_backend.dto.ProfileUpdateRequest profileUpdateRequest) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Check if username is being changed and if it's already taken by another user
+        if (!user.getUsername().equals(profileUpdateRequest.getUsername())) {
+            if (userRepository.existsByUsername(profileUpdateRequest.getUsername())) {
+                throw new RuntimeException("Username already exists");
+            }
+        }
+
+        // Check if email is being changed and if it's already taken by another user
+        if (!user.getEmail().equals(profileUpdateRequest.getEmail())) {
+            if (userRepository.existsByEmail(profileUpdateRequest.getEmail())) {
+                throw new RuntimeException("Email already exists");
+            }
+        }
+
+        // Update user fields
+        user.setUsername(profileUpdateRequest.getUsername());
+        user.setFirstName(profileUpdateRequest.getFirstName());
+        user.setLastName(profileUpdateRequest.getLastName());
+        user.setEmail(profileUpdateRequest.getEmail());
+        user.setPhoneNumber(profileUpdateRequest.getPhoneNumber());
+        user.setCity(profileUpdateRequest.getCity());
+        user.setPreferredCategory(profileUpdateRequest.getPreferredCategory());
+
+        return userRepository.save(user);
+    }
+
+    /**
      * Find user by username or email
      * @param identifier Username or email
      * @return User if found
