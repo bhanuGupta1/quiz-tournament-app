@@ -7,6 +7,7 @@ import com.quiztournament.quiz_backend.entity.QuizAnswer;
 import com.quiztournament.quiz_backend.entity.QuizResult;
 import com.quiztournament.quiz_backend.entity.Tournament;
 import com.quiztournament.quiz_backend.entity.TournamentStatus;
+import com.quiztournament.quiz_backend.repository.QuizAnswerRepository;
 import com.quiztournament.quiz_backend.repository.QuizResultRepository;
 import com.quiztournament.quiz_backend.repository.TournamentRepository;
 import com.quiztournament.quiz_backend.service.TournamentService;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +42,7 @@ public class TournamentController {
     private TournamentRepository tournamentRepository;
 
     @Autowired
-    private com.quiztournament.quiz_backend.repository.QuizAnswerRepository quizAnswerRepository;
+    private QuizAnswerRepository quizAnswerRepository;
 
     /**
      * Create a new tournament (Admin only)
