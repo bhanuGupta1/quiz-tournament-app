@@ -2,12 +2,16 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import HealthCheck from '../components/HealthCheck';
+import MyAnswersModal from '../components/MyAnswersModal';
 import api from '../services/api';
 
 const Dashboard = () => {
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showMyAnswersModal, setShowMyAnswersModal] = useState(false);
+  const [selectedTournament, setSelectedTournament] = useState(null);
+  const [completedTournaments, setCompletedTournaments] = useState([]);
   
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -21,6 +25,9 @@ const Dashboard = () => {
     // Add a small delay to ensure user data is fully loaded
     const timer = setTimeout(() => {
       fetchQuizzes();
+      if (user.role === 'PLAYER') {
+        fetchCompletedTournaments();
+      }
     }, 100);
     
     return () => clearTimeout(timer);
@@ -77,6 +84,28 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchCompletedTournaments = async () => {
+    try {
+      // Get user's quiz results to see which tournaments they've completed
+      const response = await api.get('/api/participation/my-results');
+      if (response.data.success) {
+        setCompletedTournaments(response.data.results || []);
+      }
+    } catch (error) {
+      console.log('Could not fetch completed tournaments:', error.message);
+      // Don't show error for this, it's optional functionality
+    }
+  };
+
+  const handleViewMyAnswers = (tournament) => {
+    setSelectedTournament(tournament);
+    setShowMyAnswersModal(true);
+  };
+
+  const isCompletedTournament = (tournamentId) => {
+    return completedTournaments.some(result => result.tournament?.id === tournamentId);
   };
 
   if (loading) {
@@ -220,11 +249,11 @@ const Dashboard = () => {
                 <span>Start: {tournament.startDate ? new Date(tournament.startDate).toLocaleDateString() : 'TBD'}</span>
                 <span>End: {tournament.endDate ? new Date(tournament.endDate).toLocaleDateString() : 'TBD'}</span>
               </div>
-              <div style={{ display: 'flex', gap: '10px' }}>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 <Link 
                   to={`/tournament/${tournament.id}`} 
                   className="btn btn-secondary"
-                  style={{ flex: 1 }}
+                  style={{ flex: 1, minWidth: '100px' }}
                 >
                   View Details
                 </Link>
@@ -232,16 +261,32 @@ const Dashboard = () => {
                   <Link 
                     to={`/tournament/${tournament.id}/quiz`} 
                     className="btn btn-primary"
-                    style={{ flex: 1 }}
+                    style={{ flex: 1, minWidth: '100px' }}
                   >
                     Start Tournament
                   </Link>
+                )}
+                {user?.role === 'PLAYER' && isCompletedTournament(tournament.id) && (
+                  <button 
+                    onClick={() => handleViewMyAnswers(tournament)}
+                    className="btn btn-info"
+                    style={{ 
+                      flex: 1, 
+                      minWidth: '100px',
+                      backgroundColor: '#17a2b8',
+                      color: 'white',
+                      border: 'none'
+                    }}
+                    title="Review your answers for this tournament"
+                  >
+                    My Answers
+                  </button>
                 )}
                 {user?.role === 'ADMIN' && (
                   <Link 
                     to={`/leaderboard/${tournament.id}`} 
                     className="btn btn-primary"
-                    style={{ flex: 1 }}
+                    style={{ flex: 1, minWidth: '100px' }}
                   >
                     Leaderboard
                   </Link>
@@ -309,6 +354,16 @@ const Dashboard = () => {
       
       {/* Health Check Component for debugging */}
       {process.env.NODE_ENV === 'development' && <HealthCheck />}
+
+      {/* My Answers Modal for Players */}
+      <MyAnswersModal
+        isOpen={showMyAnswersModal}
+        onClose={() => {
+          setShowMyAnswersModal(false);
+          setSelectedTournament(null);
+        }}
+        tournament={selectedTournament}
+      />
     </div>
   );
 };

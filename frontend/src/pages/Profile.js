@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import MyAnswersModal from '../components/MyAnswersModal';
 import api from '../services/api';
 
 const Profile = () => {
@@ -11,6 +12,8 @@ const Profile = () => {
   const [participatedTournaments, setParticipatedTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showMyAnswersModal, setShowMyAnswersModal] = useState(false);
+  const [selectedTournament, setSelectedTournament] = useState(null);
 
   useEffect(() => {
     if (!user) {
@@ -48,6 +51,11 @@ const Profile = () => {
       case 'F': return '#dc3545';
       default: return '#6c757d';
     }
+  };
+
+  const handleViewMyAnswers = (tournament) => {
+    setSelectedTournament(tournament);
+    setShowMyAnswersModal(true);
   };
 
   if (loading) {
@@ -178,6 +186,7 @@ const Profile = () => {
                     <th style={{ padding: '12px', textAlign: 'center' }}>Grade</th>
                     <th style={{ padding: '12px', textAlign: 'center' }}>Status</th>
                     <th style={{ padding: '12px', textAlign: 'center' }}>Date</th>
+                    <th style={{ padding: '12px', textAlign: 'center' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -226,6 +235,23 @@ const Profile = () => {
                       <td style={{ padding: '12px', textAlign: 'center', fontSize: '14px', color: '#666' }}>
                         {new Date(quiz.completedAt).toLocaleDateString()}
                       </td>
+                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                        <button
+                          onClick={() => handleViewMyAnswers(quiz.tournament)}
+                          className="btn btn-info"
+                          style={{
+                            backgroundColor: '#17a2b8',
+                            color: 'white',
+                            border: 'none',
+                            padding: '6px 12px',
+                            fontSize: '12px',
+                            borderRadius: '4px'
+                          }}
+                          title="Review your answers for this tournament"
+                        >
+                          View Answers
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -268,6 +294,16 @@ const Profile = () => {
           Back to Dashboard
         </button>
       </div>
+
+      {/* My Answers Modal */}
+      <MyAnswersModal
+        isOpen={showMyAnswersModal}
+        onClose={() => {
+          setShowMyAnswersModal(false);
+          setSelectedTournament(null);
+        }}
+        tournament={selectedTournament}
+      />
     </div>
   );
 };

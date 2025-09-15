@@ -7,21 +7,26 @@ import com.quiztournament.quiz_backend.entity.QuizAnswer;
 import com.quiztournament.quiz_backend.entity.QuizResult;
 import com.quiztournament.quiz_backend.entity.Tournament;
 import com.quiztournament.quiz_backend.entity.TournamentStatus;
+import com.quiztournament.quiz_backend.entity.User;
 import com.quiztournament.quiz_backend.repository.QuizAnswerRepository;
 import com.quiztournament.quiz_backend.repository.QuizResultRepository;
 import com.quiztournament.quiz_backend.repository.TournamentRepository;
+import com.quiztournament.quiz_backend.repository.UserRepository;
 import com.quiztournament.quiz_backend.service.TournamentService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * REST Controller for Tournament operations
@@ -43,6 +48,9 @@ public class TournamentController {
 
     @Autowired
     private QuizAnswerRepository quizAnswerRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     /**
      * Create a new tournament (Admin only)
@@ -430,6 +438,89 @@ public class TournamentController {
             response.put("answersByUser", answersByUser);
             response.put("totalUsers", answersByUser.size());
             response.put("totalAnswers", detailedAnswers.size());
+            response.put("success", true);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            errorResponse.put("success", false);
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    /**
+     * Get user's own detailed answers for a tournament (Authenticated users)
+     * GET /api/tournaments/{id}/my-answers
+     */
+    @GetMapping("/{id}/my-answers")
+    public ResponseEntity<?> getMyTournamentAnswers(@PathVariable Long id) {
+        try {
+            Tournament tournament = tournamentRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Tournament not found"));
+
+            // Get current user
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()) {
+                throw new RuntimeException("User not authenticated");
+            }
+
+            com.quiztournament.quiz_backend.service.CustomUserDetailsService.CustomUserPrincipal userPrincipal = 
+                (com.quiztournament.quiz_backend.service.CustomUserDetailsService.CustomUserPrincipal) authentication.getPrincipal();
+            
+            Long userId = userPrincipal.getId();
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Get user's answers for this tournament
+            List<QuizAnswer> myAnswers = quizAnswerRepository.findByTournamentAndUserOrderByQuestion(tournament, userId);
+            
+            if (myAnswers.isEmpty()) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "No quiz answers found. You may not have completed this tournament yet.");
+                errorResponse.put("success", false);
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+            // Format answers for frontend
+            List<Map<String, Object>> formattedAnswers = new ArrayList<>();
+            
+            for (QuizAnswer answer : myAnswers) {
+                Map<String, Object> answerData = new HashMap<>();
+                answerData.put("questionNumber", answer.getQuestionNumber());
+                answerData.put("questionText", answer.getQuestionText());
+                answerData.put("userAnswer", answer.getUserAnswer());
+                answerData.put("correctAnswer", answer.getCorrectAnswer());
+                answerData.put("isCorrect", answer.getIsCorrect());
+                answerData.put("answeredAt", answer.getAnsweredAt());
+                formattedAnswers.add(answerData);
+            }
+
+            // Get quiz result for summary
+            Optional<QuizResult> quizResultOpt = quizResultRepository.findByUserAndTournament(user, tournament);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("tournament", Map.of(
+                "id", tournament.getId(),
+                "name", tournament.getName(),
+                "category", tournament.getCategory(),
+                "difficulty", tournament.getDifficulty()
+            ));
+            response.put("answers", formattedAnswers);
+            response.put("totalQuestions", formattedAnswers.size());
+            response.put("correctAnswers", formattedAnswers.stream().mapToInt(a -> (Boolean) a.get("isCorrect") ? 1 : 0).sum());
+            
+            if (quizResultOpt.isPresent()) {
+                QuizResult result = quizResultOpt.get();
+                response.put("quizResult", Map.of(
+                    "score", result.getScore(),
+                    "totalQuestions", result.getTotalQuestions(),
+                    "percentage", result.getPercentage(),
+                    "passed", result.getPassed(),
+                    "completedAt", result.getCompletedAt()
+                ));
+            }
+            
             response.put("success", true);
 
             return ResponseEntity.ok(response);
