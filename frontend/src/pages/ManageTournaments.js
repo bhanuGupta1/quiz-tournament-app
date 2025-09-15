@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import TournamentModal from '../components/TournamentModal';
+import TournamentQuestionsModal from '../components/TournamentQuestionsModal';
+import TournamentTable from '../components/TournamentTable';
 
 const ManageTournaments = () => {
   const [tournaments, setTournaments] = useState([]);
@@ -13,6 +16,13 @@ const ManageTournaments = () => {
     category: 'all',
     difficulty: 'all'
   });
+  
+  // Modal states - Assessment Requirements
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [showQuestionsModal, setShowQuestionsModal] = useState(false);
+  const [selectedTournament, setSelectedTournament] = useState(null);
+  const [viewMode, setViewMode] = useState('table'); // 'table' or 'grid'
   
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -66,8 +76,9 @@ const ManageTournaments = () => {
     }));
   };
 
-  const handleDeleteTournament = async (tournamentId) => {
-    if (!window.confirm('Are you sure you want to delete this tournament?')) {
+  const handleDeleteTournament = async (tournamentId, tournamentName) => {
+    // Assessment Requirement: User confirmation prompt
+    if (!window.confirm(`Are you sure you want to delete "${tournamentName}"?\n\nThis action cannot be undone.`)) {
       return;
     }
 
@@ -75,9 +86,33 @@ const ManageTournaments = () => {
       await api.delete(`/api/tournaments/${tournamentId}`);
       setTournaments(prev => prev.filter(t => t.id !== tournamentId));
     } catch (error) {
-      alert('Failed to delete tournament');
-      // Error details available in development mode
+      alert('Failed to delete tournament: ' + (error.response?.data?.error || error.message));
     }
+  };
+
+  // Modal handlers - Assessment Requirements
+  const handleCreateSuccess = (newTournament) => {
+    setTournaments(prev => [newTournament, ...prev]);
+  };
+
+  const handleUpdateSuccess = (updatedTournament) => {
+    setTournaments(prev => prev.map(t => 
+      t.id === updatedTournament.id ? updatedTournament : t
+    ));
+  };
+
+  const handleViewQuestions = (tournament) => {
+    setSelectedTournament(tournament);
+    setShowQuestionsModal(true);
+  };
+
+  const handleEditTournament = (tournament) => {
+    setSelectedTournament(tournament);
+    setShowUpdateModal(true);
+  };
+
+  const handleViewDetails = (tournament) => {
+    navigate(`/tournament/${tournament.id}`);
   };
 
   const getStatusColor = (status) => {
@@ -106,11 +141,35 @@ const ManageTournaments = () => {
     <div className="container">
       <div style={{ marginBottom: '30px' }}>
         <h1>Manage All Tournaments</h1>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
-          <p>Total: {filteredTournaments.length} tournaments</p>
-          <Link to="/admin/create-tournament" className="btn btn-primary">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <p style={{ margin: 0 }}>Total: {filteredTournaments.length} tournaments</p>
+            
+            {/* View Mode Toggle */}
+            <div style={{ display: 'flex', gap: '5px' }}>
+              <button
+                onClick={() => setViewMode('table')}
+                className={`btn ${viewMode === 'table' ? 'btn-primary' : 'btn-secondary'}`}
+                style={{ padding: '6px 12px', fontSize: '14px' }}
+              >
+                Table
+              </button>
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`btn ${viewMode === 'grid' ? 'btn-primary' : 'btn-secondary'}`}
+                style={{ padding: '6px 12px', fontSize: '14px' }}
+              >
+                Grid
+              </button>
+            </div>
+          </div>
+          
+          <button 
+            onClick={() => setShowCreateModal(true)}
+            className="btn btn-primary"
+          >
             Create New Tournament
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -173,10 +232,21 @@ const ManageTournaments = () => {
         </div>
       </div>
 
-      {/* Tournaments Grid */}
+      {/* Tournament Display - Assessment Requirements */}
       {filteredTournaments.length > 0 ? (
-        <div className="quiz-grid">
-          {filteredTournaments.map((tournament) => (
+        viewMode === 'table' ? (
+          /* Assessment Requirement: Table view with creator, name, category, difficulty */
+          <TournamentTable
+            tournaments={filteredTournaments}
+            onEdit={handleEditTournament}
+            onDelete={handleDeleteTournament}
+            onViewQuestions={handleViewQuestions}
+            onViewDetails={handleViewDetails}
+          />
+        ) : (
+          /* Grid view for visual preference */
+          <div className="quiz-grid">
+            {filteredTournaments.map((tournament) => (
             <div key={tournament.id} className="quiz-card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
                 <h4 style={{ margin: 0, flex: 1 }}>{tournament.name}</h4>
@@ -206,78 +276,79 @@ const ManageTournaments = () => {
                 <span>Created by: {tournament.createdBy?.username || 'Admin'}</span>
               </div>
 
-              <div style={{ display: 'flex', gap: '8px', marginTop: '15px' }}>
-                <Link 
-                  to={`/tournament/${tournament.id}`} 
-                  className="btn btn-secondary"
-                  style={{ flex: 1, fontSize: '14px', padding: '8px' }}
-                >
-                  View
-                </Link>
-                <Link 
-                  to={`/leaderboard/${tournament.id}`} 
-                  className="btn btn-primary"
-                  style={{ flex: 1, fontSize: '14px', padding: '8px' }}
-                >
-                  Leaderboard
-                </Link>
-                <Link 
-                  to={`/admin/tournament/${tournament.id}/results`} 
+              <div style={{ display: 'flex', gap: '8px', marginTop: '15px', flexWrap: 'wrap' }}>
+                {/* Assessment Requirement: Click tournament name to view questions */}
+                <button 
+                  onClick={() => handleViewQuestions(tournament)}
                   className="btn btn-info"
                   style={{ 
-                    flex: 1, 
+                    flex: '1 1 auto', 
                     fontSize: '14px', 
                     padding: '8px',
                     backgroundColor: '#17a2b8',
                     color: 'white',
-                    border: 'none'
+                    border: 'none',
+                    minWidth: '80px'
                   }}
+                  title="View tournament questions and answers"
                 >
-                  Results
-                </Link>
-                {process.env.NODE_ENV === 'development' && (
-                  <button 
-                    onClick={async () => {
-                      try {
-                        const response = await api.get(`/api/tournaments/${tournament.id}/debug`);
-                        console.log('Debug data:', response.data);
-                        alert(`Debug Info:\nQuiz Results: ${response.data.quizResultsCount}\nCheck console for details`);
-                      } catch (error) {
-                        console.error('Debug error:', error);
-                        alert('Debug failed: ' + error.message);
-                      }
-                    }}
-                    className="btn"
-                    style={{ 
-                      flex: 1, 
-                      fontSize: '12px', 
-                      padding: '8px',
-                      backgroundColor: '#6c757d',
-                      color: 'white',
-                      border: 'none'
-                    }}
-                  >
-                    Debug
-                  </button>
-                )}
+                  Questions
+                </button>
+                
                 <button 
-                  onClick={() => handleDeleteTournament(tournament.id)}
+                  onClick={() => handleEditTournament(tournament)}
+                  className="btn btn-warning"
+                  style={{ 
+                    flex: '1 1 auto', 
+                    fontSize: '14px', 
+                    padding: '8px',
+                    backgroundColor: '#ffc107',
+                    color: '#212529',
+                    border: 'none',
+                    minWidth: '60px'
+                  }}
+                  title="Edit tournament details"
+                >
+                  Edit
+                </button>
+
+                <Link 
+                  to={`/tournament/${tournament.id}`} 
+                  className="btn btn-secondary"
+                  style={{ flex: '1 1 auto', fontSize: '14px', padding: '8px', minWidth: '60px' }}
+                >
+                  View
+                </Link>
+                
+                <Link 
+                  to={`/leaderboard/${tournament.id}`} 
+                  className="btn btn-primary"
+                  style={{ flex: '1 1 auto', fontSize: '14px', padding: '8px', minWidth: '80px' }}
+                >
+                  Leaderboard
+                </Link>
+                
+                <button 
+                  onClick={() => handleDeleteTournament(tournament.id, tournament.name)}
                   className="btn"
                   style={{ 
-                    flex: 1, 
+                    flex: '1 1 auto', 
                     fontSize: '14px', 
                     padding: '8px',
                     backgroundColor: '#dc3545', 
                     color: 'white',
-                    border: 'none'
+                    border: 'none',
+                    minWidth: '60px'
                   }}
+                  title="Delete tournament permanently"
                 >
                   Delete
                 </button>
               </div>
             </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )
       ) : (
         <div className="card" style={{ textAlign: 'center', padding: '40px' }}>
           <h3>No tournaments found</h3>
@@ -290,6 +361,35 @@ const ManageTournaments = () => {
           </button>
         </div>
       )}
+
+      {/* Assessment Requirement: Modal Forms */}
+      <TournamentModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={handleCreateSuccess}
+        mode="create"
+      />
+
+      <TournamentModal
+        isOpen={showUpdateModal}
+        onClose={() => {
+          setShowUpdateModal(false);
+          setSelectedTournament(null);
+        }}
+        onSuccess={handleUpdateSuccess}
+        tournament={selectedTournament}
+        mode="update"
+      />
+
+      {/* Assessment Requirement: View Questions Modal */}
+      <TournamentQuestionsModal
+        isOpen={showQuestionsModal}
+        onClose={() => {
+          setShowQuestionsModal(false);
+          setSelectedTournament(null);
+        }}
+        tournament={selectedTournament}
+      />
     </div>
   );
 };

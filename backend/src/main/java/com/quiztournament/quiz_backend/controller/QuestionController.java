@@ -1,5 +1,6 @@
 package com.quiztournament.quiz_backend.controller;
 
+import com.quiztournament.quiz_backend.dto.AdminQuestionResponse;
 import com.quiztournament.quiz_backend.dto.QuestionResponse;
 import com.quiztournament.quiz_backend.service.QuestionService;
 import com.quiztournament.quiz_backend.service.OpenTDBService;
@@ -309,6 +310,32 @@ public class QuestionController {
             responseBody.put("message", "Cache cleared for tournament " + id);
             responseBody.put("tournamentId", id);
             responseBody.put("success", true);
+
+            return ResponseEntity.ok(responseBody);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            errorResponse.put("success", false);
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    /**
+     * Get all questions for a tournament with answers (Admin only) - Assessment Requirement
+     * GET /api/tournaments/{id}/questions/admin
+     */
+    @GetMapping("/{id}/questions/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getTournamentQuestionsForAdmin(@PathVariable Long id) {
+        try {
+            List<AdminQuestionResponse> questions = questionService.getTournamentQuestionsWithAnswers(id);
+
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("questions", questions);
+            responseBody.put("tournamentId", id);
+            responseBody.put("totalQuestions", questions.size());
+            responseBody.put("success", true);
+            responseBody.put("message", "Tournament questions retrieved for admin review");
 
             return ResponseEntity.ok(responseBody);
         } catch (Exception e) {

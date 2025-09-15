@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import TournamentModal from '../components/TournamentModal';
 
 const AdminDashboard = () => {
   const [statistics, setStatistics] = useState(null);
   const [myTournaments, setMyTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
   
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -54,6 +56,12 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleCreateSuccess = (newTournament) => {
+    setMyTournaments(prev => [newTournament, ...prev]);
+    // Refresh statistics
+    fetchAdminData();
+  };
+
   if (loading) {
     return (
       <div className="container">
@@ -87,9 +95,12 @@ const AdminDashboard = () => {
       <div className="card" style={{ marginBottom: '30px' }}>
         <h3>Quick Actions</h3>
         <div style={{ display: 'flex', gap: '15px', marginTop: '20px' }}>
-          <Link to="/admin/create-tournament" className="btn btn-primary">
+          <button 
+            onClick={() => setShowCreateModal(true)}
+            className="btn btn-primary"
+          >
             Create New Tournament
-          </Link>
+          </button>
           <Link to="/admin/tournaments" className="btn btn-secondary">
             Manage All Tournaments
           </Link>
@@ -180,12 +191,23 @@ const AdminDashboard = () => {
         ) : (
           <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
             <p>You haven't created any tournaments yet.</p>
-            <Link to="/admin/create-tournament" className="btn btn-primary">
+            <button 
+              onClick={() => setShowCreateModal(true)}
+              className="btn btn-primary"
+            >
               Create Your First Tournament
-            </Link>
+            </button>
           </div>
         )}
       </div>
+
+      {/* Assessment Requirement: Modal Form */}
+      <TournamentModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={handleCreateSuccess}
+        mode="create"
+      />
     </div>
   );
 };

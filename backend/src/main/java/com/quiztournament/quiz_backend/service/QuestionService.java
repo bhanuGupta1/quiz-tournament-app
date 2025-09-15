@@ -1,5 +1,6 @@
 package com.quiztournament.quiz_backend.service;
 
+import com.quiztournament.quiz_backend.dto.AdminQuestionResponse;
 import com.quiztournament.quiz_backend.dto.OpenTDBQuestion;
 import com.quiztournament.quiz_backend.dto.QuestionResponse;
 import com.quiztournament.quiz_backend.entity.QuizResult;
@@ -89,6 +90,30 @@ public class QuestionService {
 
         // Initialize user quiz session
         initializeUserQuizSession(currentUser.getId(), tournamentId, questions);
+
+        return questionResponses;
+    }
+
+    /**
+     * Get all questions for a tournament with answers (Admin only) - Assessment Requirement
+     * @param tournamentId Tournament ID
+     * @return List of questions with correct answers for admin review
+     */
+    public List<AdminQuestionResponse> getTournamentQuestionsWithAnswers(Long tournamentId) {
+        Tournament tournament = tournamentRepository.findById(tournamentId)
+                .orElseThrow(() -> new RuntimeException("Tournament not found with id: " + tournamentId));
+
+        // Get or fetch questions for tournament
+        List<OpenTDBQuestion> questions = getOrFetchQuestionsForTournament(tournament);
+
+        // Convert to admin response format WITH correct answers
+        List<AdminQuestionResponse> questionResponses = new ArrayList<>();
+        for (int i = 0; i < questions.size(); i++) {
+            AdminQuestionResponse response = AdminQuestionResponse.fromOpenTDBQuestion(
+                    questions.get(i), i + 1, questions.size()
+            );
+            questionResponses.add(response);
+        }
 
         return questionResponses;
     }
