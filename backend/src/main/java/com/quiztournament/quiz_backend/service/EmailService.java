@@ -6,6 +6,7 @@ import com.quiztournament.quiz_backend.entity.UserRole;
 import com.quiztournament.quiz_backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,7 @@ import java.util.concurrent.CompletableFuture;
 @Service
 public class EmailService {
 
-    @Autowired
+    @Autowired(required = false)
     private JavaMailSender mailSender;
 
     @Autowired
@@ -36,6 +37,9 @@ public class EmailService {
 
     @Value("${app.backend.url:http://localhost:8080}")
     private String backendUrl;
+
+    @Value("${app.email.enabled:false}")
+    private boolean emailEnabled;
 
     /**
      * Send email notification to all players when new tournament is created
@@ -135,6 +139,13 @@ public class EmailService {
      * @param text Email body
      */
     private void sendEmail(String to, String subject, String text) {
+        // Skip email sending if disabled or mailSender is not configured (for testing)
+        if (!emailEnabled || mailSender == null) {
+            System.out.println("📧 Email service disabled - would have sent email to: " + to);
+            System.out.println("📧 Subject: " + subject);
+            return;
+        }
+        
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
@@ -259,6 +270,11 @@ public class EmailService {
      * @return true if email service is configured and working
      */
     public boolean testEmailConnectivity() {
+        if (!emailEnabled || mailSender == null) {
+            System.out.println("📧 Email service is disabled for testing");
+            return false;
+        }
+        
         try {
             // Try to send a test email to a dummy address
             SimpleMailMessage message = new SimpleMailMessage();
