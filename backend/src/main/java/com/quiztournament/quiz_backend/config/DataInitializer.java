@@ -2,9 +2,15 @@ package com.quiztournament.quiz_backend.config;
 
 import com.quiztournament.quiz_backend.service.AuthService;
 import com.quiztournament.quiz_backend.service.TournamentService;
+import com.quiztournament.quiz_backend.service.CustomUserDetailsService;
 import com.quiztournament.quiz_backend.dto.TournamentCreateRequest;
+import com.quiztournament.quiz_backend.entity.User;
+import com.quiztournament.quiz_backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 
@@ -20,6 +26,12 @@ public class DataInitializer implements CommandLineRunner {
     
     @Autowired
     private TournamentService tournamentService;
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Autowired
+    private CustomUserDetailsService userDetailsService;
 
     @Override
     public void run(String... args) throws Exception {
@@ -54,6 +66,9 @@ public class DataInitializer implements CommandLineRunner {
                 return;
             }
             
+            // Set up security context with admin user
+            setupAdminSecurityContext();
+            
             // Create sample tournaments with different categories and difficulties
             createSampleTournament("Science Quiz Challenge", "Science", "easy", 
                 LocalDate.now().minusDays(1), LocalDate.now().plusDays(30), 60.0);
@@ -71,8 +86,36 @@ public class DataInitializer implements CommandLineRunner {
                 LocalDate.now(), LocalDate.now().plusDays(10), 65.0);
                 
             System.out.println("Sample tournaments created successfully");
+            
+            // Clear security context after creating tournaments
+            SecurityContextHolder.clearContext();
+            
         } catch (Exception e) {
             System.err.println("Error creating sample tournaments: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    private void setupAdminSecurityContext() {
+        try {
+            // Find the admin user
+            User adminUser = userRepository.findByUsername("admin")
+                .orElseThrow(() -> new RuntimeException("Admin user not found"));
+            
+            // Load user details
+            UserDetails userDetails = userDetailsService.loadUserByUsername("admin");
+            
+            // Create authentication token
+            UsernamePasswordAuthenticationToken authentication = 
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            
+            // Set in security context
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            
+            System.out.println("Admin security context set up for tournament creation");
+        } catch (Exception e) {
+            System.err.println("Failed to set up admin security context: " + e.getMessage());
+            throw e;
         }
     }
     
