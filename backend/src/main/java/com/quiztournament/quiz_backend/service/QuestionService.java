@@ -3,10 +3,12 @@ package com.quiztournament.quiz_backend.service;
 import com.quiztournament.quiz_backend.dto.AdminQuestionResponse;
 import com.quiztournament.quiz_backend.dto.OpenTDBQuestion;
 import com.quiztournament.quiz_backend.dto.QuestionResponse;
+import com.quiztournament.quiz_backend.entity.QuizAnswer;
 import com.quiztournament.quiz_backend.entity.QuizResult;
 import com.quiztournament.quiz_backend.entity.Tournament;
 import com.quiztournament.quiz_backend.entity.User;
 import com.quiztournament.quiz_backend.entity.UserTournamentScore;
+import com.quiztournament.quiz_backend.repository.QuizAnswerRepository;
 import com.quiztournament.quiz_backend.repository.QuizResultRepository;
 import com.quiztournament.quiz_backend.repository.TournamentRepository;
 import com.quiztournament.quiz_backend.repository.UserRepository;
@@ -41,6 +43,9 @@ public class QuestionService {
 
     @Autowired
     private QuizResultRepository quizResultRepository;
+
+    @Autowired
+    private QuizAnswerRepository quizAnswerRepository;
 
     // In-memory cache for tournament questions
     // Key: tournamentId, Value: List of questions
@@ -237,9 +242,10 @@ public class QuestionService {
             Optional<QuizResult> existingResult = quizResultRepository
                 .findByUserAndTournament(currentUser, tournament);
             
+            QuizResult quizResult;
             if (existingResult.isPresent()) {
                 // Update existing result
-                QuizResult quizResult = existingResult.get();
+                quizResult = existingResult.get();
                 quizResult.setScore(correctAnswers);
                 quizResult.setTotalQuestions(totalQuestions);
                 quizResult.setPercentage(percentage);
@@ -247,9 +253,13 @@ public class QuestionService {
                 quizResult.setTimeTakenSeconds(timeTakenSeconds);
                 quizResult.setCompletedAt(java.time.LocalDateTime.now());
                 quizResultRepository.save(quizResult);
+                
+                // Delete existing detailed answers for this result
+                List<QuizAnswer> existingAnswers = quizAnswerRepository.findByQuizResultOrderByQuestionNumber(quizResult);
+                quizAnswerRepository.deleteAll(existingAnswers);
             } else {
                 // Create new result
-                QuizResult quizResult = new QuizResult(
+                quizResult = new QuizResult(
                     currentUser, 
                     tournament, 
                     correctAnswers, 
@@ -258,7 +268,24 @@ public class QuestionService {
                     passed, 
                     timeTakenSeconds
                 );
-                quizResultRepository.save(quizResult);
+                quizResult = quizResultRepository.save(quizResult);
+            }
+
+            // Save detailed answers for admin review
+            Map<Integer, UserAnswer> answerHistory = session.getAnswerHistory();
+            for (Map.Entry<Integer, UserAnswer> entry : answerHistory.entrySet()) {
+                Integer questionNumber = entry.getKey();
+                UserAnswer userAnswer = entry.getValue();
+                
+                QuizAnswer quizAnswer = new QuizAnswer(
+                    quizResult,
+                    questionNumber,
+                    userAnswer.getQuestion(),
+                    userAnswer.getAnswer(),
+                    userAnswer.getCorrectAnswer(),
+                    userAnswer.isCorrect()
+                );
+                quizAnswerRepository.save(quizAnswer);
             }
 
             // Also save to legacy UserTournamentScore table for leaderboard compatibility

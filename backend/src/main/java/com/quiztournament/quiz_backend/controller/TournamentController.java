@@ -3,6 +3,7 @@ package com.quiztournament.quiz_backend.controller;
 import com.quiztournament.quiz_backend.dto.TournamentCreateRequest;
 import com.quiztournament.quiz_backend.dto.TournamentUpdateRequest;
 import com.quiztournament.quiz_backend.dto.TournamentResponse;
+import com.quiztournament.quiz_backend.entity.QuizAnswer;
 import com.quiztournament.quiz_backend.entity.QuizResult;
 import com.quiztournament.quiz_backend.entity.Tournament;
 import com.quiztournament.quiz_backend.entity.TournamentStatus;
@@ -37,6 +38,9 @@ public class TournamentController {
 
     @Autowired
     private TournamentRepository tournamentRepository;
+
+    @Autowired
+    private com.quiztournament.quiz_backend.repository.QuizAnswerRepository quizAnswerRepository;
 
     /**
      * Create a new tournament (Admin only)
@@ -376,6 +380,60 @@ public class TournamentController {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", e.getMessage());
             errorResponse.put("stackTrace", java.util.Arrays.toString(e.getStackTrace()));
+            errorResponse.put("success", false);
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    /**
+     * Get detailed answers for tournament review (Admin only)
+     * GET /api/tournaments/{id}/detailed-answers
+     */
+    @GetMapping("/{id}/detailed-answers")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getTournamentDetailedAnswers(@PathVariable Long id) {
+        try {
+            Tournament tournament = tournamentRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Tournament not found"));
+
+            List<QuizAnswer> detailedAnswers = quizAnswerRepository.findByTournamentOrderByUserAndQuestion(tournament);
+            
+            // Group answers by user for better organization
+            Map<String, List<Map<String, Object>>> answersByUser = new HashMap<>();
+            
+            for (QuizAnswer answer : detailedAnswers) {
+                String username = answer.getQuizResult().getUser().getUsername();
+                String userDisplayName = answer.getQuizResult().getUser().getFirstName() + " " + 
+                                       answer.getQuizResult().getUser().getLastName();
+                
+                Map<String, Object> answerData = new HashMap<>();
+                answerData.put("questionNumber", answer.getQuestionNumber());
+                answerData.put("questionText", answer.getQuestionText());
+                answerData.put("userAnswer", answer.getUserAnswer());
+                answerData.put("correctAnswer", answer.getCorrectAnswer());
+                answerData.put("isCorrect", answer.getIsCorrect());
+                answerData.put("answeredAt", answer.getAnsweredAt());
+                
+                String userKey = username + " (" + userDisplayName + ")";
+                answersByUser.computeIfAbsent(userKey, k -> new ArrayList<>()).add(answerData);
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("tournament", Map.of(
+                "id", tournament.getId(),
+                "name", tournament.getName(),
+                "category", tournament.getCategory(),
+                "difficulty", tournament.getDifficulty()
+            ));
+            response.put("answersByUser", answersByUser);
+            response.put("totalUsers", answersByUser.size());
+            response.put("totalAnswers", detailedAnswers.size());
+            response.put("success", true);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
             errorResponse.put("success", false);
             return ResponseEntity.badRequest().body(errorResponse);
         }

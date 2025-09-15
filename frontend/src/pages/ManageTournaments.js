@@ -5,6 +5,7 @@ import api from '../services/api';
 import TournamentModal from '../components/TournamentModal';
 import TournamentQuestionsModal from '../components/TournamentQuestionsModal';
 import TournamentTable from '../components/TournamentTable';
+import DetailedAnswersModal from '../components/DetailedAnswersModal';
 
 const ManageTournaments = () => {
   const [tournaments, setTournaments] = useState([]);
@@ -21,6 +22,7 @@ const ManageTournaments = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showQuestionsModal, setShowQuestionsModal] = useState(false);
+  const [showDetailedAnswersModal, setShowDetailedAnswersModal] = useState(false);
   const [selectedTournament, setSelectedTournament] = useState(null);
   const [viewMode, setViewMode] = useState('table'); // 'table' or 'grid'
   
@@ -113,6 +115,11 @@ const ManageTournaments = () => {
 
   const handleViewDetails = (tournament) => {
     navigate(`/tournament/${tournament.id}`);
+  };
+
+  const handleViewDetailedAnswers = (tournament) => {
+    setSelectedTournament(tournament);
+    setShowDetailedAnswersModal(true);
   };
 
   const getStatusColor = (status) => {
@@ -242,6 +249,7 @@ const ManageTournaments = () => {
             onDelete={handleDeleteTournament}
             onViewQuestions={handleViewQuestions}
             onViewDetails={handleViewDetails}
+            onViewDetailedAnswers={handleViewDetailedAnswers}
           />
         ) : (
           /* Grid view for visual preference */
@@ -293,6 +301,23 @@ const ManageTournaments = () => {
                   title="View tournament questions and answers"
                 >
                   Questions
+                </button>
+
+                <button 
+                  onClick={() => handleViewDetailedAnswers(tournament)}
+                  className="btn btn-info"
+                  style={{ 
+                    flex: '1 1 auto', 
+                    fontSize: '14px', 
+                    padding: '8px',
+                    backgroundColor: '#20c997',
+                    color: 'white',
+                    border: 'none',
+                    minWidth: '70px'
+                  }}
+                  title="View detailed user answers"
+                >
+                  Answers
                 </button>
                 
                 <button 
@@ -386,6 +411,16 @@ const ManageTournaments = () => {
         isOpen={showQuestionsModal}
         onClose={() => {
           setShowQuestionsModal(false);
+          setSelectedTournament(null);
+        }}
+        tournament={selectedTournament}
+      />
+
+      {/* Admin Review: Detailed Answers Modal */}
+      <DetailedAnswersModal
+        isOpen={showDetailedAnswersModal}
+        onClose={() => {
+          setShowDetailedAnswersModal(false);
           setSelectedTournament(null);
         }}
         tournament={selectedTournament}
