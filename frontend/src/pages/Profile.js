@@ -10,7 +10,7 @@ const Profile = () => {
   const navigate = useNavigate();
   
   const [quizHistory, setQuizHistory] = useState([]);
-  const [participatedTournaments, setParticipatedTournaments] = useState([]);
+  // const [participatedTournaments, setParticipatedTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showMyAnswersModal, setShowMyAnswersModal] = useState(false);
