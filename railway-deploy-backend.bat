@@ -23,7 +23,8 @@ echo Step 5: Set environment variables
 echo Setting production environment variables...
 railway variables set SPRING_PROFILES_ACTIVE=prod
 railway variables set JWT_SECRET=quiz-tournament-super-secure-jwt-secret-key-2024-production-environment
-railway variables set FRONTEND_URL=https://your-app.netlify.app
+railway variables set FRONTEND_URL=https://majestic-tarsier-882abf.netlify.app
+railway variables set PORT=8080
 
 echo.
 echo Step 6: Deploy backend
