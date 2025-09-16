@@ -247,18 +247,75 @@ const Dashboard = () => {
         </div>
       )}
 
-      <div className="quiz-grid">
-        {quizzes.length > 0 ? (
-          quizzes.map((tournament) => (
-            <TournamentCard
-              key={tournament.id}
-              tournament={tournament}
-              onViewMyAnswers={handleViewMyAnswers}
-              isCompleted={isCompletedTournament(tournament.id)}
-              showLikeButton={true}
-            />
-          ))
-        ) : (
+      {/* Tournament Sections for Players */}
+      {user?.role === 'PLAYER' ? (
+        <div>
+          {/* Available Tournaments */}
+          {quizzes.filter(tournament => !isCompletedTournament(tournament.id)).length > 0 && (
+            <div style={{ marginBottom: '40px' }}>
+              <h3 style={{ color: '#007bff', marginBottom: '20px' }}>
+                🎯 Available Tournaments ({quizzes.filter(tournament => !isCompletedTournament(tournament.id)).length})
+              </h3>
+              <div className="quiz-grid">
+                {quizzes
+                  .filter(tournament => !isCompletedTournament(tournament.id))
+                  .map((tournament) => (
+                    <TournamentCard
+                      key={tournament.id}
+                      tournament={tournament}
+                      onViewMyAnswers={handleViewMyAnswers}
+                      isCompleted={false}
+                      showLikeButton={true}
+                    />
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* Completed Tournaments */}
+          {quizzes.filter(tournament => isCompletedTournament(tournament.id)).length > 0 && (
+            <div style={{ marginBottom: '40px' }}>
+              <h3 style={{ color: '#28a745', marginBottom: '20px' }}>
+                ✅ Completed Tournaments ({quizzes.filter(tournament => isCompletedTournament(tournament.id)).length})
+              </h3>
+              <div className="quiz-grid">
+                {quizzes
+                  .filter(tournament => isCompletedTournament(tournament.id))
+                  .map((tournament) => (
+                    <TournamentCard
+                      key={tournament.id}
+                      tournament={tournament}
+                      onViewMyAnswers={handleViewMyAnswers}
+                      isCompleted={true}
+                      showLikeButton={true}
+                    />
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* No tournaments message */}
+          {quizzes.length === 0 && (
+            <div className="card" style={{ textAlign: 'center', padding: '40px' }}>
+              <h3>No tournaments available</h3>
+              <p>Check back later for new tournaments!</p>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Admin View - All Tournaments */
+        <div className="quiz-grid">
+          {quizzes.length > 0 ? (
+            quizzes.map((tournament) => (
+              <TournamentCard
+                key={tournament.id}
+                tournament={tournament}
+                onViewMyAnswers={handleViewMyAnswers}
+                isCompleted={isCompletedTournament(tournament.id)}
+                showLikeButton={true}
+              />
+            ))
+          ) : (
           <div className="card" style={{ gridColumn: '1 / -1', textAlign: 'center' }}>
             <h3>No tournaments available</h3>
             <p>
@@ -289,8 +346,9 @@ const Dashboard = () => {
               </div>
             )}
           </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       <div style={{ marginTop: '40px', textAlign: 'center' }}>
         <h3>Your Stats</h3>

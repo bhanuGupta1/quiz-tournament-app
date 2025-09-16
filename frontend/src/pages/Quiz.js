@@ -339,6 +339,7 @@ const Quiz = () => {
                 tournamentId={parseInt(id)} 
                 size="large"
                 showCount={true}
+                isCompleted={true} // User just completed the tournament
                 style={{ 
                   fontSize: '18px',
                   padding: '12px 24px',

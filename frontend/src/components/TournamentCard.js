@@ -13,7 +13,7 @@ const TournamentCard = ({
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [likeLoading, setLikeLoading] = useState(false);
-  const [likeEligible, setLikeEligible] = useState(false);
+  // Removed likeEligible since we now only show likes for completed tournaments
 
   // Fetch like status when component mounts
   useEffect(() => {
@@ -28,11 +28,7 @@ const TournamentCard = ({
           setLikeCount(statusResponse.data.totalLikes);
         }
 
-        // Check like eligibility
-        const eligibilityResponse = await api.get(`/api/tournaments/${tournament.id}/like-eligibility`);
-        if (eligibilityResponse.data.success) {
-          setLikeEligible(eligibilityResponse.data.canLike);
-        }
+        // Like eligibility is now based on completion status only
       } catch (error) {
         console.error('Failed to fetch like status:', error);
         // Don't show error to user, just use default values
@@ -92,18 +88,36 @@ const TournamentCard = ({
       {/* Tournament Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
         <h3 style={{ margin: 0, flex: 1 }}>{tournament.name || tournament.title}</h3>
-        <span 
-          style={{ 
-            padding: '4px 8px', 
-            borderRadius: '4px', 
-            fontSize: '12px', 
-            fontWeight: 'bold',
-            color: 'white',
-            backgroundColor: getStatusColor(tournament.status)
-          }}
-        >
-          {getStatusText(tournament.status)}
-        </span>
+        <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+          {/* Completion Status Badge */}
+          {isCompleted && (
+            <span 
+              style={{ 
+                padding: '4px 8px', 
+                borderRadius: '4px', 
+                fontSize: '12px', 
+                fontWeight: 'bold',
+                color: 'white',
+                backgroundColor: '#28a745'
+              }}
+            >
+              ✅ COMPLETED
+            </span>
+          )}
+          {/* Tournament Status Badge */}
+          <span 
+            style={{ 
+              padding: '4px 8px', 
+              borderRadius: '4px', 
+              fontSize: '12px', 
+              fontWeight: 'bold',
+              color: 'white',
+              backgroundColor: getStatusColor(tournament.status)
+            }}
+          >
+            {getStatusText(tournament.status)}
+          </span>
+        </div>
       </div>
       
       {/* Tournament Description */}
@@ -123,8 +137,8 @@ const TournamentCard = ({
         <span>End: {tournament.endDate ? new Date(tournament.endDate).toLocaleDateString() : 'TBD'}</span>
       </div>
 
-      {/* Like Section - Only for Players */}
-      {user?.role === 'PLAYER' && showLikeButton && (
+      {/* Like Section - Only for Players who completed the tournament */}
+      {user?.role === 'PLAYER' && showLikeButton && isCompleted && (
         <div style={{ 
           display: 'flex', 
           alignItems: 'center', 
@@ -136,34 +150,46 @@ const TournamentCard = ({
         }}>
           <button
             onClick={handleLikeToggle}
-            disabled={likeLoading || !likeEligible}
+            disabled={likeLoading}
             style={{
               background: 'none',
               border: 'none',
-              cursor: (likeLoading || !likeEligible) ? 'not-allowed' : 'pointer',
+              cursor: likeLoading ? 'not-allowed' : 'pointer',
               fontSize: '18px',
               display: 'flex',
               alignItems: 'center',
               gap: '5px',
               color: liked ? '#dc3545' : '#6c757d',
-              opacity: (likeLoading || !likeEligible) ? 0.6 : 1
+              opacity: likeLoading ? 0.6 : 1
             }}
-            title={
-              !likeEligible 
-                ? 'Complete this tournament to like it' 
-                : liked 
-                  ? 'Unlike this tournament' 
-                  : 'Like this tournament'
-            }
+            title={liked ? 'Unlike this tournament' : 'Like this tournament'}
           >
             {likeLoading ? '⏳' : (liked ? '❤️' : '🤍')} {likeCount}
           </button>
           
-          {!likeEligible && (
-            <span style={{ fontSize: '12px', color: '#6c757d', fontStyle: 'italic' }}>
-              Complete to like
-            </span>
-          )}
+          <span style={{ fontSize: '12px', color: '#28a745', fontStyle: 'italic' }}>
+            You completed this tournament!
+          </span>
+        </div>
+      )}
+
+      {/* Show like count for non-completed tournaments (read-only) */}
+      {user?.role === 'PLAYER' && showLikeButton && !isCompleted && likeCount > 0 && (
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '10px', 
+          marginBottom: '15px',
+          padding: '8px',
+          backgroundColor: '#f8f9fa',
+          borderRadius: '4px'
+        }}>
+          <span style={{ fontSize: '16px', color: '#6c757d' }}>
+            🤍 {likeCount} {likeCount === 1 ? 'like' : 'likes'}
+          </span>
+          <span style={{ fontSize: '12px', color: '#6c757d', fontStyle: 'italic' }}>
+            Complete to like this tournament
+          </span>
         </div>
       )}
 
@@ -198,7 +224,7 @@ const TournamentCard = ({
           View Details
         </Link>
         
-        {user?.role === 'PLAYER' && tournament.status === 'ONGOING' && (
+        {user?.role === 'PLAYER' && !isCompleted && (
           <Link 
             to={`/tournament/${tournament.id}/quiz`} 
             className="btn btn-primary"
@@ -206,6 +232,24 @@ const TournamentCard = ({
           >
             Start Tournament
           </Link>
+        )}
+        
+        {user?.role === 'PLAYER' && isCompleted && (
+          <button 
+            className="btn"
+            style={{ 
+              flex: 1, 
+              minWidth: '100px',
+              backgroundColor: '#6c757d',
+              color: 'white',
+              border: 'none',
+              cursor: 'not-allowed'
+            }}
+            disabled
+            title="You have already completed this tournament"
+          >
+            ✅ Completed
+          </button>
         )}
         
         {user?.role === 'PLAYER' && isCompleted && onViewMyAnswers && (

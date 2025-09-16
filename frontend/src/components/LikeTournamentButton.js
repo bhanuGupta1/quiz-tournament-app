@@ -7,7 +7,8 @@ const LikeTournamentButton = ({
   size = 'normal', // 'small', 'normal', 'large'
   showCount = true,
   className = '',
-  style = {}
+  style = {},
+  isCompleted = false // Only show for completed tournaments
 }) => {
   const { user } = useAuth();
   const [liked, setLiked] = useState(false);
@@ -65,8 +66,8 @@ const LikeTournamentButton = ({
     }
   };
 
-  // Don't render for non-players
-  if (user?.role !== 'PLAYER') {
+  // Don't render for non-players or non-completed tournaments
+  if (user?.role !== 'PLAYER' || !isCompleted) {
     return null;
   }
 
