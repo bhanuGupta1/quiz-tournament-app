@@ -73,7 +73,7 @@ const Profile = () => {
         }
         
         setQuizHistory(quizHistoryData);
-        setParticipatedTournaments(completedTournaments);
+        // setParticipatedTournaments(completedTournaments);
       }
     } catch (error) {
       console.error('Profile data fetch error:', error);
