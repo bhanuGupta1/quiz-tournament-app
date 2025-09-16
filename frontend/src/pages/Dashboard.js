@@ -409,50 +409,39 @@ const Dashboard = () => {
           )}
         </div>
       ) : (
-        /* Admin View - All Tournaments */
-        <div className="quiz-grid">
-          {quizzes.length > 0 ? (
-            quizzes.map((tournament) => (
-              <TournamentCard
-                key={tournament.id}
-                tournament={tournament}
-                onViewMyAnswers={handleViewMyAnswers}
-                isCompleted={isCompletedTournament(tournament.id)}
-                showLikeButton={true}
-              />
-            ))
-          ) : (
-          <div className="card" style={{ gridColumn: '1 / -1', textAlign: 'center' }}>
-            <h3>No tournaments available</h3>
-            <p>
-              {user?.role === 'ADMIN' 
-                ? 'Create your first tournament to get started!' 
-                : 'Check back later for new tournaments!'
-              }
-            </p>
-            {user?.role === 'ADMIN' && (
-              <div>
-                <Link to="/admin/create-tournament" className="btn btn-primary" style={{ marginTop: '15px' }}>
-                  Create First Tournament
-                </Link>
-                <button 
-                  onClick={async () => {
-                    try {
-                      const health = await api.get('/api/health');
-                      alert(`Backend Status: ${health.data.status}\nMessage: ${health.data.message}`);
-                    } catch (err) {
-                      alert(`Backend Error: ${err.message}\nPlease ensure the backend is running on port 8080`);
-                    }
-                  }}
-                  className="btn btn-secondary" 
-                  style={{ marginTop: '15px', marginLeft: '10px' }}
-                >
-                  Test Backend Connection
-                </button>
-              </div>
-            )}
+        /* Admin View - Redirect to Professional Dashboard */
+        <div className="card" style={{ textAlign: 'center', padding: '60px' }}>
+          <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🎯</div>
+          <h3>Admin Control Center Available</h3>
+          <p style={{ color: '#6c757d', marginBottom: '30px' }}>
+            Access the professional admin dashboard for comprehensive tournament management, analytics, and system oversight.
+          </p>
+          <Link 
+            to="/admin" 
+            className="btn btn-primary"
+            style={{ 
+              padding: '15px 30px',
+              fontSize: '18px',
+              borderRadius: '8px',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              border: 'none',
+              textDecoration: 'none',
+              color: 'white'
+            }}
+          >
+            🚀 Go to Admin Control Center
+          </Link>
+          
+          <div style={{ marginTop: '20px', fontSize: '14px', color: '#6c757d' }}>
+            <p>Features available in Admin Control Center:</p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '10px' }}>
+              <span>📊 Analytics</span>
+              <span>🎯 Tournament Management</span>
+              <span>❤️ Like Statistics</span>
+              <span>🏆 Leaderboards</span>
+              <span>📝 Question Management</span>
+            </div>
           </div>
-          )}
         </div>
       )}
 

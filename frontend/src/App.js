@@ -8,6 +8,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Quiz from './pages/Quiz';
 import AdminDashboard from './pages/AdminDashboard';
+import ProfessionalAdminDashboard from './pages/ProfessionalAdminDashboard';
 import CreateTournament from './pages/CreateTournament';
 import ManageTournaments from './pages/ManageTournaments';
 import TournamentDetails from './pages/TournamentDetails';
@@ -34,7 +35,8 @@ function App() {
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/admin" element={<ProfessionalAdminDashboard />} />
+                  <Route path="/admin/old" element={<AdminDashboard />} />
                   <Route path="/admin/create-tournament" element={<CreateTournament />} />
                   <Route path="/admin/tournaments" element={<ManageTournaments />} />
                   <Route path="/admin/tournament/:id/results" element={<TournamentResults />} />
