@@ -16,6 +16,7 @@ import Leaderboard from './pages/Leaderboard';
 import EnhancedLeaderboard from './pages/EnhancedLeaderboard';
 import Profile from './pages/Profile';
 import ForgotPassword from './pages/ForgotPassword';
+import PopularTournaments from './pages/PopularTournaments';
 import { AuthProvider } from './context/AuthContext';
 import './App.css';
 
@@ -42,6 +43,8 @@ function App() {
                   <Route path="/leaderboard/:id" element={<Leaderboard />} />
                   <Route path="/enhanced-scores/:id" element={<EnhancedLeaderboard />} />
                   <Route path="/profile" element={<Profile />} />
+                  <Route path="/my-profile" element={<Profile />} />
+                  <Route path="/popular-tournaments" element={<PopularTournaments />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                 </Routes>
               </ErrorBoundary>

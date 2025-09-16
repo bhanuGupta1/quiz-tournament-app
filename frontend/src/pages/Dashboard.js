@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import HealthCheck from '../components/HealthCheck';
 import MyAnswersModal from '../components/MyAnswersModal';
+import TournamentCard from '../components/TournamentCard';
 import api from '../services/api';
 
 const Dashboard = () => {
@@ -231,68 +232,31 @@ const Dashboard = () => {
         </div>
       )}
 
+      {/* Quick Links for Players */}
+      {user?.role === 'PLAYER' && (
+        <div className="card" style={{ marginBottom: '30px' }}>
+          <h3>Quick Links</h3>
+          <div style={{ display: 'flex', gap: '15px', marginTop: '15px', flexWrap: 'wrap' }}>
+            <Link to="/popular-tournaments" className="btn btn-secondary">
+              🏆 Popular Tournaments
+            </Link>
+            <Link to="/my-profile" className="btn btn-secondary">
+              👤 My Profile
+            </Link>
+          </div>
+        </div>
+      )}
+
       <div className="quiz-grid">
         {quizzes.length > 0 ? (
           quizzes.map((tournament) => (
-            <div key={tournament.id} className="quiz-card">
-              <h3>{tournament.name || tournament.title}</h3>
-              <p>{tournament.description || `${tournament.category} tournament`}</p>
-              <div className="quiz-meta">
-                <span>{tournament.questionCount || 'Multiple'} questions</span>
-                <span>{tournament.difficulty ? tournament.difficulty.charAt(0).toUpperCase() + tournament.difficulty.slice(1) : 'Unknown'}</span>
-              </div>
-              <div className="quiz-meta">
-                <span>Category: {tournament.category}</span>
-                <span>Status: {tournament.status ? tournament.status.charAt(0).toUpperCase() + tournament.status.slice(1) : 'Unknown'}</span>
-              </div>
-              <div className="quiz-meta">
-                <span>Start: {tournament.startDate ? new Date(tournament.startDate).toLocaleDateString() : 'TBD'}</span>
-                <span>End: {tournament.endDate ? new Date(tournament.endDate).toLocaleDateString() : 'TBD'}</span>
-              </div>
-              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                <Link 
-                  to={`/tournament/${tournament.id}`} 
-                  className="btn btn-secondary"
-                  style={{ flex: 1, minWidth: '100px' }}
-                >
-                  View Details
-                </Link>
-                {user?.role === 'PLAYER' && tournament.status === 'ONGOING' && (
-                  <Link 
-                    to={`/tournament/${tournament.id}/quiz`} 
-                    className="btn btn-primary"
-                    style={{ flex: 1, minWidth: '100px' }}
-                  >
-                    Start Tournament
-                  </Link>
-                )}
-                {user?.role === 'PLAYER' && isCompletedTournament(tournament.id) && (
-                  <button 
-                    onClick={() => handleViewMyAnswers(tournament)}
-                    className="btn btn-info"
-                    style={{ 
-                      flex: 1, 
-                      minWidth: '100px',
-                      backgroundColor: '#17a2b8',
-                      color: 'white',
-                      border: 'none'
-                    }}
-                    title="Review your answers for this tournament"
-                  >
-                    My Answers
-                  </button>
-                )}
-                {user?.role === 'ADMIN' && (
-                  <Link 
-                    to={`/leaderboard/${tournament.id}`} 
-                    className="btn btn-primary"
-                    style={{ flex: 1, minWidth: '100px' }}
-                  >
-                    Leaderboard
-                  </Link>
-                )}
-              </div>
-            </div>
+            <TournamentCard
+              key={tournament.id}
+              tournament={tournament}
+              onViewMyAnswers={handleViewMyAnswers}
+              isCompleted={isCompletedTournament(tournament.id)}
+              showLikeButton={true}
+            />
           ))
         ) : (
           <div className="card" style={{ gridColumn: '1 / -1', textAlign: 'center' }}>

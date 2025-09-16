@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import LikeTournamentButton from '../components/LikeTournamentButton';
 import api from '../services/api';
 
 const Quiz = () => {
@@ -315,6 +316,36 @@ const Quiz = () => {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Like Tournament Section */}
+          {user?.role === 'PLAYER' && (
+            <div style={{ 
+              textAlign: 'center', 
+              margin: '30px 0',
+              padding: '20px',
+              background: '#f8f9fa',
+              borderRadius: '8px',
+              border: '2px dashed #dee2e6'
+            }}>
+              <h4 style={{ marginBottom: '15px', color: '#495057' }}>
+                💖 Did you enjoy this tournament?
+              </h4>
+              <p style={{ marginBottom: '15px', color: '#6c757d' }}>
+                Let others know by giving it a like!
+              </p>
+              <LikeTournamentButton 
+                tournamentId={parseInt(id)} 
+                size="large"
+                showCount={true}
+                style={{ 
+                  fontSize: '18px',
+                  padding: '12px 24px',
+                  borderRadius: '25px',
+                  border: '2px solid #dc3545'
+                }}
+              />
             </div>
           )}
 

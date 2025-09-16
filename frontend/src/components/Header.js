@@ -24,6 +24,9 @@ const Header = () => {
             {user ? (
               <>
                 <Link to="/dashboard" className="nav-link">Dashboard</Link>
+                {user.role === 'PLAYER' && (
+                  <Link to="/popular-tournaments" className="nav-link">🏆 Popular</Link>
+                )}
                 {user.role === 'ADMIN' && (
                   <Link to="/admin" className="nav-link">Admin Panel</Link>
                 )}
