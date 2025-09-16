@@ -36,21 +36,35 @@ const Dashboard = () => {
 
   const fetchQuizzes = async () => {
     try {
-      let response;
-      
       if (user.role === 'ADMIN') {
         // Admins can see all tournaments
-        response = await api.get('/api/tournaments');
+        const response = await api.get('/api/tournaments');
         console.log('Admin tournaments response:', response.data);
         setQuizzes(response.data.tournaments || []);
       } else if (user.role === 'PLAYER') {
-        // Players see available tournaments
-        response = await api.get('/api/participation/available-tournaments');
-        console.log('Player available tournaments response:', response.data);
-        setQuizzes(response.data.tournaments || []);
+        // Players see ALL tournaments from all categories
+        const [ongoingRes, upcomingRes, pastRes] = await Promise.all([
+          api.get('/api/tournaments/status/ongoing'),
+          api.get('/api/tournaments/status/upcoming'),
+          api.get('/api/tournaments/status/past')
+        ]);
+
+        console.log('Ongoing tournaments:', ongoingRes.data.tournaments);
+        console.log('Upcoming tournaments:', upcomingRes.data.tournaments);
+        console.log('Past tournaments:', pastRes.data.tournaments);
+
+        // Combine all tournaments
+        const allTournaments = [
+          ...(ongoingRes.data.tournaments || []),
+          ...(upcomingRes.data.tournaments || []),
+          ...(pastRes.data.tournaments || [])
+        ];
+
+        console.log('All tournaments combined:', allTournaments);
+        setQuizzes(allTournaments);
       } else {
         // Fallback: try to get tournaments by status
-        response = await api.get('/api/tournaments/status/ongoing');
+        const response = await api.get('/api/tournaments/status/ongoing');
         console.log('Fallback tournaments response:', response.data);
         setQuizzes(response.data.tournaments || []);
       }
@@ -59,29 +73,7 @@ const Dashboard = () => {
       setError('');
     } catch (error) {
       console.error('Primary tournament fetch failed:', error);
-      
-      // If the specific endpoint fails, try a fallback
-      try {
-        const fallbackResponse = await api.get('/api/tournaments/status/ongoing');
-        setQuizzes(fallbackResponse.data.tournaments || []);
-        setError(''); // Clear error if fallback works
-      } catch (fallbackError) {
-        console.error('Fallback tournament fetch failed:', fallbackError);
-        
-        // Try one more fallback for admins
-        if (user.role === 'ADMIN') {
-          try {
-            const adminFallback = await api.get('/api/tournaments/statistics');
-            if (adminFallback.data.success) {
-              setError('Tournaments service is running but no tournaments found. Create your first tournament!');
-            }
-          } catch (adminError) {
-            setError('Unable to connect to tournament service. Please check if the backend is running.');
-          }
-        } else {
-          setError('No tournaments available at the moment. Please check back later.');
-        }
-      }
+      setError('Failed to load tournaments. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -89,11 +81,35 @@ const Dashboard = () => {
 
   const fetchCompletedTournaments = async () => {
     try {
-      // Get user's quiz results to see which tournaments they've completed
-      const response = await api.get('/api/participation/my-results');
-      if (response.data.success) {
-        setCompletedTournaments(response.data.results || []);
+      // Try multiple endpoints to get user's completed tournaments
+      let completedResults = [];
+      
+      // First try the quiz history endpoint
+      try {
+        const historyResponse = await api.get('/api/participation/my-quiz-history');
+        if (historyResponse.data.success) {
+          completedResults = historyResponse.data.quizHistory || [];
+          console.log('Completed tournaments from history:', completedResults);
+        }
+      } catch (historyError) {
+        console.log('Quiz history endpoint failed:', historyError.message);
       }
+
+      // If that fails, try the my-tournaments endpoint
+      if (completedResults.length === 0) {
+        try {
+          const tournamentsResponse = await api.get('/api/participation/my-tournaments');
+          if (tournamentsResponse.data.success) {
+            completedResults = tournamentsResponse.data.tournaments || [];
+            console.log('Completed tournaments from my-tournaments:', completedResults);
+          }
+        } catch (tournamentsError) {
+          console.log('My-tournaments endpoint failed:', tournamentsError.message);
+        }
+      }
+
+      setCompletedTournaments(completedResults);
+      console.log('Final completed tournaments set:', completedResults);
     } catch (error) {
       console.log('Could not fetch completed tournaments:', error.message);
       // Don't show error for this, it's optional functionality
@@ -106,7 +122,14 @@ const Dashboard = () => {
   };
 
   const isCompletedTournament = (tournamentId) => {
-    return completedTournaments.some(result => result.tournament?.id === tournamentId);
+    const isCompleted = completedTournaments.some(result => {
+      // Handle different response formats
+      const resultTournamentId = result.tournament?.id || result.tournamentId || result.id;
+      return resultTournamentId === tournamentId;
+    });
+    
+    console.log(`Tournament ${tournamentId} completion status:`, isCompleted);
+    return isCompleted;
   };
 
   if (loading) {
@@ -198,6 +221,20 @@ const Dashboard = () => {
             >
               Check Ongoing
             </button>
+            <button 
+              onClick={async () => {
+                try {
+                  await fetchCompletedTournaments();
+                  alert(`✅ Refreshed! Completed: ${completedTournaments.length} tournaments`);
+                } catch (err) {
+                  alert(`Error: ${err.message}`);
+                }
+              }}
+              className="btn btn-success"
+              style={{ backgroundColor: '#28a745', color: 'white', fontSize: '12px', padding: '6px 12px' }}
+            >
+              Refresh Completed
+            </button>
           </div>
         </div>
       )}
@@ -250,21 +287,37 @@ const Dashboard = () => {
       {/* Tournament Sections for Players */}
       {user?.role === 'PLAYER' ? (
         <div>
-          {/* Available Tournaments */}
-          {quizzes.filter(tournament => !isCompletedTournament(tournament.id)).length > 0 && (
+          {/* Debug Info */}
+          {process.env.NODE_ENV === 'development' && (
+            <div style={{ 
+              background: '#f8f9fa', 
+              padding: '10px', 
+              borderRadius: '4px', 
+              marginBottom: '20px',
+              fontSize: '12px'
+            }}>
+              <strong>Debug Info:</strong><br/>
+              Total tournaments: {quizzes.length}<br/>
+              Completed tournaments: {completedTournaments.length}<br/>
+              Completed IDs: {completedTournaments.map(t => t.tournament?.id || t.tournamentId || t.id).join(', ')}
+            </div>
+          )}
+
+          {/* Ongoing Tournaments */}
+          {quizzes.filter(tournament => tournament.status === 'ONGOING').length > 0 && (
             <div style={{ marginBottom: '40px' }}>
-              <h3 style={{ color: '#007bff', marginBottom: '20px' }}>
-                🎯 Available Tournaments ({quizzes.filter(tournament => !isCompletedTournament(tournament.id)).length})
+              <h3 style={{ color: '#28a745', marginBottom: '20px' }}>
+                🟢 Ongoing Tournaments ({quizzes.filter(tournament => tournament.status === 'ONGOING').length})
               </h3>
               <div className="quiz-grid">
                 {quizzes
-                  .filter(tournament => !isCompletedTournament(tournament.id))
+                  .filter(tournament => tournament.status === 'ONGOING')
                   .map((tournament) => (
                     <TournamentCard
                       key={tournament.id}
                       tournament={tournament}
                       onViewMyAnswers={handleViewMyAnswers}
-                      isCompleted={false}
+                      isCompleted={isCompletedTournament(tournament.id)}
                       showLikeButton={true}
                     />
                   ))}
@@ -272,24 +325,77 @@ const Dashboard = () => {
             </div>
           )}
 
-          {/* Completed Tournaments */}
-          {quizzes.filter(tournament => isCompletedTournament(tournament.id)).length > 0 && (
+          {/* Upcoming Tournaments */}
+          {quizzes.filter(tournament => tournament.status === 'UPCOMING').length > 0 && (
             <div style={{ marginBottom: '40px' }}>
-              <h3 style={{ color: '#28a745', marginBottom: '20px' }}>
-                ✅ Completed Tournaments ({quizzes.filter(tournament => isCompletedTournament(tournament.id)).length})
+              <h3 style={{ color: '#ffc107', marginBottom: '20px' }}>
+                🟡 Upcoming Tournaments ({quizzes.filter(tournament => tournament.status === 'UPCOMING').length})
               </h3>
               <div className="quiz-grid">
                 {quizzes
-                  .filter(tournament => isCompletedTournament(tournament.id))
+                  .filter(tournament => tournament.status === 'UPCOMING')
                   .map((tournament) => (
                     <TournamentCard
                       key={tournament.id}
                       tournament={tournament}
                       onViewMyAnswers={handleViewMyAnswers}
-                      isCompleted={true}
+                      isCompleted={isCompletedTournament(tournament.id)}
                       showLikeButton={true}
                     />
                   ))}
+              </div>
+            </div>
+          )}
+
+          {/* Past Tournaments */}
+          {quizzes.filter(tournament => tournament.status === 'PAST').length > 0 && (
+            <div style={{ marginBottom: '40px' }}>
+              <h3 style={{ color: '#6c757d', marginBottom: '20px' }}>
+                🔴 Past Tournaments ({quizzes.filter(tournament => tournament.status === 'PAST').length})
+              </h3>
+              <div className="quiz-grid">
+                {quizzes
+                  .filter(tournament => tournament.status === 'PAST')
+                  .map((tournament) => (
+                    <TournamentCard
+                      key={tournament.id}
+                      tournament={tournament}
+                      onViewMyAnswers={handleViewMyAnswers}
+                      isCompleted={isCompletedTournament(tournament.id)}
+                      showLikeButton={true}
+                    />
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* Completed Tournaments Section */}
+          {completedTournaments.length > 0 && (
+            <div style={{ marginBottom: '40px' }}>
+              <h3 style={{ color: '#17a2b8', marginBottom: '20px' }}>
+                ✅ My Completed Tournaments ({completedTournaments.length})
+              </h3>
+              <div className="quiz-grid">
+                {completedTournaments.map((result) => {
+                  const tournamentId = result.tournament?.id || result.tournamentId || result.id;
+                  const tournament = quizzes.find(t => t.id === tournamentId) || {
+                    id: tournamentId,
+                    name: result.tournament?.name || result.tournamentName || 'Unknown Tournament',
+                    category: result.tournament?.category || 'Unknown',
+                    difficulty: result.tournament?.difficulty || 'Unknown',
+                    status: 'COMPLETED'
+                  };
+                  
+                  return (
+                    <TournamentCard
+                      key={tournamentId}
+                      tournament={tournament}
+                      onViewMyAnswers={handleViewMyAnswers}
+                      isCompleted={true}
+                      showLikeButton={true}
+                    />
+                  );
+                })}
               </div>
             </div>
           )}
