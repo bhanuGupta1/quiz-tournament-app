@@ -44,4 +44,21 @@ public interface QuizResultRepository extends JpaRepository<QuizResult, Long> {
      * Count passed participants for a tournament
      */
     long countByTournamentAndPassedTrue(Tournament tournament);
+    
+    /**
+     * Calculate average percentage across all quiz results
+     */
+    @Query("SELECT AVG(qr.percentage) FROM QuizResult qr")
+    Double findAveragePercentage();
+    
+    /**
+     * Calculate average percentage for a specific user
+     */
+    @Query("SELECT AVG(qr.percentage) FROM QuizResult qr WHERE qr.user = :user")
+    Double findAveragePercentageByUser(@Param("user") User user);
+    
+    /**
+     * Count total tournaments taken by a user
+     */
+    long countByUser(User user);
 }

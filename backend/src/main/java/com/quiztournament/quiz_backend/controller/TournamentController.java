@@ -280,16 +280,45 @@ public class TournamentController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getTournamentStatistics() {
         try {
+            // Tournament counts
             long totalTournaments = tournamentService.getTotalTournamentCount();
             List<TournamentResponse> upcomingTournaments = tournamentService.getTournamentsByStatus(TournamentStatus.UPCOMING);
             List<TournamentResponse> ongoingTournaments = tournamentService.getTournamentsByStatus(TournamentStatus.ONGOING);
             List<TournamentResponse> pastTournaments = tournamentService.getTournamentsByStatus(TournamentStatus.PAST);
+
+            // Player and participation statistics - REAL DATA ONLY
+            long totalPlayers = userRepository.countByRole(com.quiztournament.quiz_backend.entity.UserRole.PLAYER);
+            long totalParticipations = quizResultRepository.count();
+            
+            // Calculate average score across all quiz results
+            Double averageScore = quizResultRepository.findAveragePercentage();
+            if (averageScore == null) averageScore = 0.0;
+            
+            // Calculate total likes across all tournaments
+            long totalLikes = 0;
+            try {
+                // Sum up likes from all tournaments
+                List<Tournament> allTournaments = tournamentRepository.findAll();
+                for (Tournament tournament : allTournaments) {
+                    totalLikes += tournamentRepository.countLikes(tournament.getId());
+                }
+            } catch (Exception e) {
+                // If like counting fails, default to 0
+                totalLikes = 0;
+            }
 
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("totalTournaments", totalTournaments);
             responseBody.put("upcomingCount", upcomingTournaments.size());
             responseBody.put("ongoingCount", ongoingTournaments.size());
             responseBody.put("pastCount", pastTournaments.size());
+            
+            // Enhanced statistics
+            responseBody.put("totalPlayers", totalPlayers);
+            responseBody.put("totalParticipations", totalParticipations);
+            responseBody.put("averageScore", Math.round(averageScore * 100.0) / 100.0);
+            responseBody.put("totalLikes", totalLikes);
+            
             responseBody.put("success", true);
 
             return ResponseEntity.ok(responseBody);

@@ -13,6 +13,11 @@ const Dashboard = () => {
   const [showMyAnswersModal, setShowMyAnswersModal] = useState(false);
   const [selectedTournament, setSelectedTournament] = useState(null);
   const [completedTournaments, setCompletedTournaments] = useState([]);
+  const [userStats, setUserStats] = useState({
+    tournamentsParticipated: 0,
+    averageScore: 0,
+    city: 'Not set'
+  });
   
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -28,6 +33,7 @@ const Dashboard = () => {
       fetchQuizzes();
       if (user.role === 'PLAYER') {
         fetchCompletedTournaments();
+        fetchUserStats();
       }
     }, 100);
     
@@ -113,6 +119,23 @@ const Dashboard = () => {
     } catch (error) {
       console.log('Could not fetch completed tournaments:', error.message);
       // Don't show error for this, it's optional functionality
+    }
+  };
+
+  const fetchUserStats = async () => {
+    try {
+      const response = await api.get('/api/auth/my-stats');
+      if (response.data.success) {
+        setUserStats({
+          tournamentsParticipated: response.data.tournamentsParticipated || 0,
+          averageScore: response.data.averageScore || 0,
+          city: response.data.city || 'Not set'
+        });
+        console.log('User stats fetched:', response.data);
+      }
+    } catch (error) {
+      console.log('Could not fetch user stats:', error.message);
+      // Keep default values
     }
   };
 
@@ -445,29 +468,32 @@ const Dashboard = () => {
         </div>
       )}
 
-      <div style={{ marginTop: '40px', textAlign: 'center' }}>
-        <h3>Your Stats</h3>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', marginTop: '20px' }}>
-          <div className="card" style={{ minWidth: '150px' }}>
-            <h4>Tournaments Taken</h4>
-            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#007bff' }}>
-              {user?.tournamentsParticipated || 0}
+      {/* Player Stats Section */}
+      {user?.role === 'PLAYER' && (
+        <div style={{ marginTop: '40px', textAlign: 'center' }}>
+          <h3>Your Stats</h3>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', marginTop: '20px' }}>
+            <div className="card" style={{ minWidth: '150px' }}>
+              <h4>Tournaments Taken</h4>
+              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#007bff' }}>
+                {userStats.tournamentsParticipated}
+              </div>
             </div>
-          </div>
-          <div className="card" style={{ minWidth: '150px' }}>
-            <h4>Average Score</h4>
-            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#28a745' }}>
-              {user?.averageScore || 0}%
+            <div className="card" style={{ minWidth: '150px' }}>
+              <h4>Average Score</h4>
+              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#28a745' }}>
+                {userStats.averageScore}%
+              </div>
             </div>
-          </div>
-          <div className="card" style={{ minWidth: '150px' }}>
-            <h4>City</h4>
-            <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#ffc107' }}>
-              {user?.city || 'Not set'}
+            <div className="card" style={{ minWidth: '150px' }}>
+              <h4>City</h4>
+              <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#ffc107' }}>
+                {userStats.city}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
       
       {/* Health Check Component for debugging */}
       {process.env.NODE_ENV === 'development' && <HealthCheck />}

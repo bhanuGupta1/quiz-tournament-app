@@ -28,20 +28,67 @@ const Profile = () => {
   const fetchProfileData = async () => {
     try {
       if (user.role === 'PLAYER') {
-        const [historyResponse, tournamentsResponse] = await Promise.all([
-          api.get('/api/participation/my-quiz-history'),
-          api.get('/api/participation/my-tournaments')
-        ]);
+        // Note: We could get basic stats from /api/auth/my-stats but we need detailed history
         
-        setQuizHistory(historyResponse.data.quizHistory || []);
-        setParticipatedTournaments(tournamentsResponse.data.tournaments || []);
+        // Get user's completed tournaments by checking all tournaments and filtering
+        const allTournamentsResponse = await api.get('/api/tournaments/status/past');
+        const ongoingTournamentsResponse = await api.get('/api/tournaments/status/ongoing');
+        
+        // Combine past and ongoing tournaments
+        const allTournaments = [
+          ...(allTournamentsResponse.data.tournaments || []),
+          ...(ongoingTournamentsResponse.data.tournaments || [])
+        ];
+        
+        // For each tournament, check if user has completed it
+        const completedTournaments = [];
+        const quizHistoryData = [];
+        
+        for (const tournament of allTournaments) {
+          try {
+            // Try to get user's answers for this tournament (indicates completion)
+            const answersResponse = await api.get(`/api/tournaments/${tournament.id}/my-answers`);
+            if (answersResponse.data.success && answersResponse.data.quizResult) {
+              const result = answersResponse.data.quizResult;
+              
+              // Add to completed tournaments
+              completedTournaments.push(tournament);
+              
+              // Add to quiz history with proper format
+              quizHistoryData.push({
+                tournament: tournament,
+                tournamentId: tournament.id,
+                score: result.score,
+                totalQuestions: result.totalQuestions,
+                percentage: result.percentage,
+                passed: result.passed,
+                completedAt: result.completedAt,
+                grade: getGradeFromPercentage(result.percentage)
+              });
+            }
+          } catch (answerError) {
+            // User hasn't completed this tournament, skip
+            console.log(`User hasn't completed tournament ${tournament.id}`);
+          }
+        }
+        
+        setQuizHistory(quizHistoryData);
+        setParticipatedTournaments(completedTournaments);
       }
     } catch (error) {
-      setError('Failed to load profile data');
-      // Error details available in development mode
+      console.error('Profile data fetch error:', error);
+      setError(`Failed to load profile data: ${error.response?.data?.error || error.message}`);
     } finally {
       setLoading(false);
     }
+  };
+
+  const getGradeFromPercentage = (percentage) => {
+    if (percentage >= 90) return 'A';
+    if (percentage >= 80) return 'B';
+    if (percentage >= 70) return 'C';
+    if (percentage >= 60) return 'D';
+    return 'F';
   };
 
   const getGradeColor = (grade) => {
@@ -127,9 +174,7 @@ const Profile = () => {
           <div>
             <strong>Preferred Category:</strong>
             <div>{user.preferredCategory || 'Not selected'}</div>
-              <div>{user.preferredCategory}</div>
-            </div>
-          )}
+          </div>
         </div>
       </div>
 
@@ -141,7 +186,25 @@ const Profile = () => {
           borderRadius: '4px', 
           marginBottom: '20px' 
         }}>
-          {error}
+          <strong>⚠️ Error:</strong> {error}
+          <button 
+            onClick={() => {
+              setError('');
+              setLoading(true);
+              fetchProfileData();
+            }}
+            style={{ 
+              marginLeft: '15px', 
+              padding: '5px 10px', 
+              background: '#721c24', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            Retry
+          </button>
         </div>
       )}
 

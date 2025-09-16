@@ -37,4 +37,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // Find users by preferred category
     List<User> findByPreferredCategory(String preferredCategory);
+    
+    // Count users by role (for statistics)
+    long countByRole(UserRole role);
 }

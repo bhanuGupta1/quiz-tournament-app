@@ -564,7 +564,7 @@ const ProfessionalAdminDashboard = () => {
             
             <div style={{ textAlign: 'center', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
               <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#28a745' }}>
-                {statistics.totalParticipants || 0}
+                {statistics.totalPlayers || 0}
               </div>
               <div style={{ fontSize: '14px', color: '#6c757d' }}>Total Players</div>
             </div>

@@ -68,41 +68,8 @@ public class DataInitializer implements CommandLineRunner {
     }
     
     private void createSampleTournaments() {
-        try {
-            // Check if tournaments already exist
-            if (tournamentService.getTotalTournamentCount() > 0) {
-                System.out.println("Tournaments already exist, skipping sample data creation");
-                return;
-            }
-            
-            // Set up security context with admin user
-            setupAdminSecurityContext();
-            
-            // Create sample tournaments with different categories and difficulties
-            createSampleTournament("Science Quiz Challenge", "Science", "easy", 
-                LocalDate.now().minusDays(1), LocalDate.now().plusDays(30), 60.0);
-                
-            createSampleTournament("History Masters", "History", "medium", 
-                LocalDate.now(), LocalDate.now().plusDays(14), 70.0);
-                
-            createSampleTournament("Sports Trivia Championship", "Sports", "hard", 
-                LocalDate.now().plusDays(1), LocalDate.now().plusDays(21), 80.0);
-                
-            createSampleTournament("General Knowledge Quiz", "General Knowledge", "easy", 
-                LocalDate.now().minusDays(2), LocalDate.now().plusDays(7), 50.0);
-                
-            createSampleTournament("Technology Quiz", "Technology", "medium", 
-                LocalDate.now(), LocalDate.now().plusDays(10), 65.0);
-                
-            System.out.println("Sample tournaments created successfully");
-            
-            // Clear security context after creating tournaments
-            SecurityContextHolder.clearContext();
-            
-        } catch (Exception e) {
-            System.err.println("Error creating sample tournaments: " + e.getMessage());
-            e.printStackTrace();
-        }
+        // Always skip sample tournament creation to preserve existing data
+        System.out.println("Skipping sample tournament creation to preserve existing data");
     }
     
     private void setupAdminSecurityContext() {
